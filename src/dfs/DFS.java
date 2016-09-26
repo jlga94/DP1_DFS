@@ -21,7 +21,7 @@ public class DFS {
     
     public static void main(String[] args) throws FileNotFoundException {
         GestorCiudades gestor= new GestorCiudades("Extras/_plan_vuelo.txt", "Extras/_aeropuertos.OACI.txt", "Extras/_husos_horarios.txt");
-        gestor.imprimirCiudades();
+        //gestor.imprimirCiudades();
         gestor.asignarPedidos("Extras/_pedidos.txt");
     }
     

@@ -19,6 +19,8 @@ public class GestorCiudades {
     private TreeMap<String,Ciudad> ciudades=new TreeMap<String,Ciudad>();//MAP KEY-Codigo Ciudad y el VALUE-Objeto Ciudad
     private int maxCapacidadCiudades=500;
     private int maxCapacidadesVuelos=50;
+    private int maxTiempoContinental=24;
+    private int maxTiempoIntercontinental=48;
     
     
     private void leerCiudades(String archAeropuertos,String archHusos) throws FileNotFoundException{
@@ -105,6 +107,7 @@ public class GestorCiudades {
     public void asignarPedidos(String archPedidos)throws FileNotFoundException{
         BufferedReader brPedidos = new BufferedReader(new FileReader(archPedidos));
         String linea;
+        int horaPedido=9;
         try{
             int numPedido=1;
             while((linea=brPedidos.readLine()) != null){
@@ -112,7 +115,7 @@ public class GestorCiudades {
                 String codCiudadO=datos[0];
                 String codCiudadF=datos[1];
                 
-                DFS(codCiudadO,codCiudadF,numPedido);
+                DFS(codCiudadO,codCiudadF,numPedido,horaPedido);
                 
                 numPedido++;
             }
@@ -133,23 +136,160 @@ public class GestorCiudades {
         } 
     }
     
-    private void DFS(String codCiudadO,String codCiudadF,int numPedido){
-        Ciudad ciudadO=ciudades.get(codCiudadO);
+    private class Tupla{
+        private String recorridoRuta;
+        private int tiempoRuta;
         
+        public Tupla(String recorridoRuta,int tiempoRuta){
+            this.recorridoRuta=recorridoRuta;
+            this.tiempoRuta=tiempoRuta;
+        }
+
+        /**
+         * @return the ruta
+         */
+        public String getRuta() {
+            return recorridoRuta;
+        }
+
+        /**
+         * @param ruta the ruta to set
+         */
+        public void setRuta(String ruta) {
+            this.recorridoRuta = ruta;
+        }
+
+        /**
+         * @return the tiempoRuta
+         */
+        public int getTiempoRuta() {
+            return tiempoRuta;
+        }
+
+        /**
+         * @param tiempoRuta the tiempoRuta to set
+         */
+        public void setTiempoRuta(int tiempoRuta) {
+            this.tiempoRuta = tiempoRuta;
+        }
+    
+    }
+    
+    
+    private void DFS(String codCiudadO,String codCiudadF,int numPedido,int horaPedido){
+        Ciudad ciudadO=ciudades.get(codCiudadO);
+        Ciudad ciudadF=ciudades.get(codCiudadF);
+        int maxTiempoVuelo;
+        if(ciudadO.getContinente().equals(ciudadF.getContinente()))
+            maxTiempoVuelo=maxTiempoContinental;
+        else
+            maxTiempoVuelo=maxTiempoIntercontinental;
+        
+        String mejorRuta="";
+        int mejorTiempo=10000;//Numero alto para que sea reemplazado en le primera iteración
+        
+        ArrayList<Ruta> RutasAnexadasO=ciudadO.getRutasAnexas();
+        for(Ruta rutaActual: RutasAnexadasO){
+            
+            Tupla resultadoRuta=recursiveSearch(rutaActual,0,maxTiempoVuelo,codCiudadF,codCiudadO,horaPedido);
+            if(resultadoRuta!=null){
+                int tiempoRuta=resultadoRuta.getTiempoRuta();
+                System.out.println("Ruta: "+resultadoRuta.getRuta()+" Tiempo: "+tiempoRuta);
+                if(tiempoRuta<mejorTiempo){
+                    mejorTiempo=tiempoRuta;
+                    mejorRuta=resultadoRuta.getRuta();
+                }                
+            }
+        }
+        System.out.println("Numero de Pedido: "+numPedido+ " Mejor Ruta: "+mejorRuta+" Mejor Tiempo: "+mejorTiempo);
         
     } 
+    
+    
+    private Tupla recursiveSearch(Ruta rutaActual,int tiempoTotalActual,int maxTiempoVuelo,String ciudadFinal,String seguimientoRuta,int horaPartida){
+                
+        int tiempoTraslado_Espera=calcularTiempo(rutaActual,horaPartida);
+        int tiempoTotalActualizado=tiempoTotalActual+tiempoTraslado_Espera;
+        
+        if(tiempoTotalActualizado>maxTiempoVuelo){
+            return null;
+        }else{
+            if(rutaActual.getCiudadFin().equals(ciudadFinal)){
+                Tupla resultado= new Tupla(seguimientoRuta+"-"+rutaActual.getCiudadFin(),tiempoTotalActualizado);
+                return resultado;
+            }
+            
+            if(tiempoTotalActualizado==maxTiempoVuelo)//Si ya llego al tope, no vale la pena seguir buscando caminos
+                return null;
+        }
+        
+        
+        Ciudad ciudadNuevaPartida=ciudades.get(rutaActual.getCiudadFin());
+        String[] hhmm=rutaActual.getHoraFin().trim().split(":");        
+        horaPartida=Integer.parseInt(hhmm[0]);
+        
+        
+        String mejorRuta="";
+        int mejorTiempo=10000;
+        ArrayList<Ruta> RutasAnexadasNuevaPartida=ciudadNuevaPartida.getRutasAnexas();
+        for(Ruta rutaNueva: RutasAnexadasNuevaPartida){
+            
+            if(rutaNueva.getCiudadFin().equals(rutaActual.getCiudadOrigen())){//Se está volviendo al mismo punto
+                continue;
+            }
+            
+            Tupla resultadoRuta=recursiveSearch(rutaNueva,tiempoTotalActualizado,maxTiempoVuelo,ciudadFinal,seguimientoRuta+"-"+rutaNueva.getCiudadOrigen(),horaPartida);
+            if(resultadoRuta!=null){
+                if(resultadoRuta.getTiempoRuta()<mejorTiempo){
+                    mejorTiempo=resultadoRuta.getTiempoRuta();
+                    mejorRuta=resultadoRuta.getRuta();
+                }                
+            }
+            
+        }
+        if(mejorRuta.equals(""))
+            return null;
+        else{
+            Tupla resultado= new Tupla(mejorRuta,mejorTiempo);
+            return resultado;
+        }
+    }
+    
+    private int calcularTiempo(Ruta rutaActual,int horaPartida){
+        String[] hhmm=rutaActual.getHoraOrigen().trim().split(":");
+        int hhOrigen=Integer.parseInt(hhmm[0]);
+        int tiempoEspera;
+        if(horaPartida<=hhOrigen)
+            tiempoEspera=hhOrigen-horaPartida;
+        else
+            tiempoEspera=24-(horaPartida-hhOrigen);
+        
+        int tiempoTraslado;
+        
+        Ciudad ciudadI=ciudades.get(rutaActual.getCiudadOrigen());
+        Ciudad ciudadF=ciudades.get(rutaActual.getCiudadFin());
+        if(ciudadI.getContinente().equals(ciudadF.getContinente()))
+            tiempoTraslado=12;
+        else
+            tiempoTraslado=24;
+                    
+        return tiempoEspera+tiempoTraslado;
+    }
     
     
     public void imprimirCiudades(){
         Set set = ciudades.entrySet();
         Iterator i = set.iterator();
         while(i.hasNext()) {
-        Map.Entry me = (Map.Entry)i.next();
-        System.out.print(me.getKey() + ": ");
-        Ciudad ciudadActual=(Ciudad)me.getValue();
-        
-        System.out.println("Nombre:"+ciudadActual.getNombre()+" Continente: "+ciudadActual.getContinente());
-      }
+            Map.Entry me = (Map.Entry)i.next();
+            System.out.print(me.getKey() + ": ");
+            Ciudad ciudadActual=(Ciudad)me.getValue();
+
+            System.out.println("Nombre:"+ciudadActual.getNombre()+" Continente: "+ciudadActual.getContinente());
+            
+        }
     }
+    
+    
     
 }
