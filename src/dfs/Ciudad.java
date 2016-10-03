@@ -18,6 +18,7 @@ public class Ciudad {
     private String pais;
     private String Continente;
     private int huso_horario;
+    private int cantPaquetes;
     private ArrayList<Ruta> rutasAnexas=new ArrayList<Ruta>();
 
     public Ciudad(String id,String codigo,String nombre,String pais,String continente){
@@ -26,6 +27,7 @@ public class Ciudad {
         this.nombre=nombre;
         this.pais=pais;
         this.Continente=continente;
+        this.cantPaquetes=0;
     }
     
     /**
@@ -128,6 +130,20 @@ public class Ciudad {
     
     public void agregarRuta(Ruta newruta){
         this.rutasAnexas.add(newruta);
+    }
+
+    /**
+     * @return the cantPaquetes
+     */
+    public int getCantPaquetes() {
+        return cantPaquetes;
+    }
+
+    /**
+     * @param cantPaquetes the cantPaquetes to set
+     */
+    public void setCantPaquetes(int cantPaquetes) {
+        this.cantPaquetes = cantPaquetes;
     }
     
 }
