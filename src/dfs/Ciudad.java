@@ -172,6 +172,17 @@ public class Ciudad {
         cantVisitadasRutasAnexas.set(indiceRuta, cant+1);
     }
     
+    public void disminuirOtrasRutas(int indiceRuta){
+        for(int i=0;i<this.rutasAnexas.size();i++){
+            if(i!=indiceRuta){
+                int cant=cantVisitadasRutasAnexas.get(i);
+                if(cant>1)
+                    cantVisitadasRutasAnexas.set(i,cant-1);
+            }
+        }
+    }
+    
+    
     /**
      * @return the cantVisitadasRutasAnexas
      */
