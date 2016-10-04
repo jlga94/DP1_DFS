@@ -7,7 +7,12 @@ package dfs;
 
 import java.io.FileNotFoundException;
 import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.TreeMap;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  *
@@ -20,9 +25,11 @@ public class DFS {
      */
     
     public static void main(String[] args) throws FileNotFoundException {
+        
+        
         GestorCiudades gestor= new GestorCiudades("Extras/_plan_vuelo.txt", "Extras/_aeropuertos.OACI.txt", "Extras/_husos_horarios.txt");
         gestor.asignarPedidos("Extras/_pedidos_N.txt");
-        //gestor.imprimirCiudades();
+        gestor.imprimirCiudades();
     }
     
 }

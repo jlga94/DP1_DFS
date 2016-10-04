@@ -6,6 +6,8 @@
 package dfs;
 
 import java.util.ArrayList;
+import java.util.TreeMap;
+import javafx.util.Pair;
 
 /**
  *
@@ -19,7 +21,8 @@ public class Ciudad {
     private String Continente;
     private int huso_horario;
     private int cantPaquetes;
-    private ArrayList<Ruta> rutasAnexas=new ArrayList<Ruta>();
+    public ArrayList<Ruta> rutasAnexas=new ArrayList<Ruta>();
+    public TreeMap proyeccionAlmacen = new TreeMap();
 
     public Ciudad(String id,String codigo,String nombre,String pais,String continente){
         this.Id=Integer.parseInt(id);
@@ -28,6 +31,46 @@ public class Ciudad {
         this.pais=pais;
         this.Continente=continente;
         this.cantPaquetes=0;
+        for(int i=0;i<7;i++){
+            proyeccionAlmacen.put(i, new TreeMap());
+            for(int j=0;j<24;++j){
+                TreeMap temp=(TreeMap)proyeccionAlmacen.get(i);
+                temp.put(j*100, 0);
+                temp.put(j*100+1, 0);
+                /*proyeccionAlmacen.put(i, new Pair(j*100,0));
+                proyeccionAlmacen.put(i, new Pair(j*100+1,0));*/
+                /*proyeccionAlmacen.put(new Pair(i,j*100),0);
+                proyeccionAlmacen.put(new Pair(i,j*100+1),0);*/
+            }
+        }
+        /*for(int i=0;i<24;i++){
+            
+            proyeccionAlmacen.put("Lunes",new Pair(i,0)  );
+        }
+        for(int i=0;i<24;i++){
+            
+            proyeccionAlmacen.put("Martes",new Pair(i,0)  );
+        }
+        for(int i=0;i<24;i++){
+            
+            proyeccionAlmacen.put("Miercoles",new Pair(i,0)  );
+        }
+        for(int i=0;i<24;i++){
+            
+            proyeccionAlmacen.put("Jueves",new Pair(i,0)  );
+        }
+        for(int i=0;i<24;i++){
+            
+            proyeccionAlmacen.put("Viernes",new Pair(i,0)  );
+        }
+        for(int i=0;i<24;i++){
+            
+            proyeccionAlmacen.put("Sabado",new Pair(i,0)  );
+        }
+        for(int i=0;i<24;i++){
+            
+            proyeccionAlmacen.put("Domingo",new Pair(i,0)  );
+        }*/
     }
     
     /**
