@@ -43,34 +43,6 @@ public class Ciudad {
                 proyeccionAlmacen.put(new Pair(i,j*100+1),0);*/
             }
         }
-        /*for(int i=0;i<24;i++){
-            
-            proyeccionAlmacen.put("Lunes",new Pair(i,0)  );
-        }
-        for(int i=0;i<24;i++){
-            
-            proyeccionAlmacen.put("Martes",new Pair(i,0)  );
-        }
-        for(int i=0;i<24;i++){
-            
-            proyeccionAlmacen.put("Miercoles",new Pair(i,0)  );
-        }
-        for(int i=0;i<24;i++){
-            
-            proyeccionAlmacen.put("Jueves",new Pair(i,0)  );
-        }
-        for(int i=0;i<24;i++){
-            
-            proyeccionAlmacen.put("Viernes",new Pair(i,0)  );
-        }
-        for(int i=0;i<24;i++){
-            
-            proyeccionAlmacen.put("Sabado",new Pair(i,0)  );
-        }
-        for(int i=0;i<24;i++){
-            
-            proyeccionAlmacen.put("Domingo",new Pair(i,0)  );
-        }*/
     }
     
     /**

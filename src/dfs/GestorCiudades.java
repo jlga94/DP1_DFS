@@ -206,15 +206,15 @@ public class GestorCiudades {
             System.out.println("Numero de Pedido: "+numPedido+ " Mejor Ruta: "+mejorRuta.imprimirRecorrido()+" Mejor Tiempo: "+mejorRuta.getTiempoRuta());
             //agregarPaquetes_Ciudades(mejorRuta,cantPaquetes);
             //this.TiempoEntregaPaquetes+=mejorTiempo*cantPaquetes;
-            //actualizarAlmacen(mejorRuta, cantPaquetes,horaPedido,fechaPedido,mejorTiempo,codCiudadF);
+            actualizarAlmacen(mejorRuta, cantPaquetes,horaPedido,fechaPedido,codCiudadF);
         }
     }
     
-    private void actualizarAlmacen(String mejorRuta,int cantPaquetes,String horaPedido,String fechaPedido,int mejorTiempo,String ciudadLlegada){
+    private void actualizarAlmacen(RutaEscogida mejorRuta,int cantPaquetes,String horaPedido,String fechaPedido,String ciudadLlegada){
         String[] hora=horaPedido.split(":");
         int horaLlegada= Integer.parseInt(hora[0]);//hora en la que llea el pedido
         //int horaTotal = mejorTiempo+ horaLlegada;
-        String[] puntos=mejorRuta.split("-");//puntos por los que pasa el envio
+        //String[] puntos=mejorRuta.split("-");//puntos por los que pasa el envio
         
         //dia de la semana en la que llega el paquete
         Calendar c=Calendar.getInstance();
@@ -226,7 +226,59 @@ public class GestorCiudades {
         int dayweek=c.get(Calendar.DAY_OF_WEEK)-2;//porque la semana comienza el domingo y el arreglo del 0-6
         
         //actualizamos el almacen del primer lugar de origen hasta que sale el envio
-        for (Ruta temp : ciudades.get(puntos[0]).rutasAnexas) {
+        
+        ArrayList<Ruta> recorrido= mejorRuta.getListaRutaEscogida();
+        
+        for(int i=0;i<recorrido.size();++i){
+            Ruta punto=recorrido.get(i);
+            int tiempoEspera = mejorRuta.getTiemposEspera().get(i);
+            int tiempoTraslado = mejorRuta.getTiemposTraslado().get(i);
+            
+            //PARA EL TIEMPO DE ESPERA EN EL ALMACEN HASTA QUE SALGA EL VUELO
+            if(horaLlegada+tiempoEspera>23){//si supera el dia esperando el vuelo
+                TreeMap temporal =(TreeMap) ciudades.get(punto.getCiudadOrigen()).proyeccionAlmacen.get(dayweek);
+                int tempHora=horaLlegada;
+                while(tempHora<23){
+                    int valorActual=(int)temporal.get(tempHora*100+1);//aqui seria la hora no 900
+                    temporal.put(tempHora*100, valorActual+cantPaquetes);
+                    temporal.put(tempHora*100+1, valorActual+cantPaquetes);
+                    tempHora++;
+                }
+                tempHora=0;
+                temporal =(TreeMap) ciudades.get(punto.getCiudadOrigen()).proyeccionAlmacen.get(dayweek+1);
+                while(tempHora<(horaLlegada+tiempoEspera)%24){
+                    int valorActual=(int)temporal.get(tempHora*100+1);//aqui seria la hora no 900
+                    temporal.put(tempHora*100, valorActual+cantPaquetes);
+                    temporal.put(tempHora*100+1, valorActual+cantPaquetes);
+                    tempHora++;
+                }
+            }
+            else{
+                int tempHora=horaLlegada;
+                TreeMap temporal =(TreeMap) ciudades.get(punto.getCiudadOrigen()).proyeccionAlmacen.get(dayweek);
+                while(tempHora<horaLlegada+tiempoEspera){
+                    int valorActual=(int)temporal.get(tempHora*100+1);//aqui seria la hora no 900
+                    temporal.put(tempHora*100, valorActual+cantPaquetes);
+                    temporal.put(tempHora*100+1, valorActual+cantPaquetes);
+                    tempHora++;
+                }
+            }
+            
+            //LUEGO EVALUAMOS A DONDE VA EL VUELO
+            if(punto.getCiudadFin().equals(ciudadLlegada)){
+                int horaLlegadaDestino=horaLlegada+tiempoEspera+tiempoTraslado;
+                while(horaLlegadaDestino>23){
+                    ++dayweek;
+                    horaLlegadaDestino-=24;
+                }
+                TreeMap temporal =(TreeMap) ciudades.get(punto.getCiudadFin()).proyeccionAlmacen.get(dayweek);
+                int valorActual=(int)temporal.get(horaLlegadaDestino*100+1);
+                temporal.put(horaLlegadaDestino*100, valorActual+cantPaquetes);
+                temporal.put(horaLlegadaDestino*100+1, valorActual);
+            }
+        }
+        
+        /*for (Ruta temp : ciudades.get(puntos[0]).rutasAnexas) {
             if(temp.getCiudadFin().equals(puntos[1])){
                 String[] horasModificadas=temp.getHoraOrigen().split(":");
                 int horaSalidaVuelo=Integer.parseInt(horasModificadas[0]);
@@ -262,13 +314,13 @@ public class GestorCiudades {
                 horaLlegada=Integer.parseInt(horasModificadas[0]);
                 break;
             }
-        }
+        }*/
         //actualizamos los almacenes por cada punto que se recorre durante el viaje
-        int k=0;
+        /*int k=0;
         for (String ciudad : puntos) {
             if(k==0)continue;//porque ya se realizo el primer punto
             else if(k==puntos.length)break;
-            k++;
+            k++;*/
 //            TreeMap temp =(TreeMap) ciudades.get(ciudad).proyeccionAlmacen.get(dayweek);
 //            int valorActual=(int)temp.get(horaLlegada*100+1);//aqui seria la hora no 900
 //            temp.put(horaLlegada*100, valorActual+cantPaquetes);
@@ -278,7 +330,7 @@ public class GestorCiudades {
     
     
     
-            for (Ruta temp : ciudades.get(ciudad).rutasAnexas) {
+            /*for (Ruta temp : ciudades.get(ciudad).rutasAnexas) {
                 if(temp.getCiudadFin().equals(puntos[k+1])){
                     String[] horasModificadas=temp.getHoraOrigen().split(":");
                     int horaSalidaVuelo=Integer.parseInt(horasModificadas[0]);
@@ -315,7 +367,7 @@ public class GestorCiudades {
                     break;
                 }
             }
-        }
+        }*/
     }
     
     /*private void actualizarAlmacen(String mejorRuta,int cantPaquetes,String horaPedido,String fechaPedido,int mejorTiempo,String ciudadLlegada){
