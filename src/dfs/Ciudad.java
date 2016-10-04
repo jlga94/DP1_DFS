@@ -23,6 +23,7 @@ public class Ciudad {
     private int cantPaquetes;
     public ArrayList<Ruta> rutasAnexas=new ArrayList<Ruta>();
     public TreeMap proyeccionAlmacen = new TreeMap();
+    private ArrayList<Integer> cantVisitadasRutasAnexas=new ArrayList<Integer>();
 
     public Ciudad(String id,String codigo,String nombre,String pais,String continente){
         this.Id=Integer.parseInt(id);
@@ -159,6 +160,36 @@ public class Ciudad {
      */
     public void setCantPaquetes(int cantPaquetes) {
         this.cantPaquetes = cantPaquetes;
+    }
+    
+    public void instanciarCantidadIdasRutasAnexas(){
+        for(int i=0;i<this.rutasAnexas.size();i++){
+            this.cantVisitadasRutasAnexas.add(1);//Se instancian con 1 para empezas con probabilidad 1
+        }
+        
+    }
+
+    public void incrementarRutaEscogida(int indiceRuta){
+        int cant=cantVisitadasRutasAnexas.get(indiceRuta);
+        cantVisitadasRutasAnexas.set(indiceRuta, cant+1);
+    }
+    
+    public void disminuirOtrasRutas(int indiceRuta){
+        for(int i=0;i<this.rutasAnexas.size();i++){
+            if(i!=indiceRuta){
+                int cant=cantVisitadasRutasAnexas.get(i);
+                if(cant>1)
+                    cantVisitadasRutasAnexas.set(i,cant-1);
+            }
+        }
+    }
+    
+    
+    /**
+     * @return the cantVisitadasRutasAnexas
+     */
+    public ArrayList<Integer> getCantVisitadasRutasAnexas() {
+        return cantVisitadasRutasAnexas;
     }
     
 }
