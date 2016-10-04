@@ -271,7 +271,7 @@ public class GestorCiudades {
         int [] anexosRevisados=new int[cantidadAnexos];
         int cantAnexosRevisados=0;
         int encontroAlMenosUno=0; 
-        int porcCantAnexos=cantidadAnexos/1;//PORCENTAJE DE LAS RUTAS QUE SE ESTÁN EVALUANDO
+        int porcCantAnexos=cantidadAnexos/8;//PORCENTAJE DE LAS RUTAS QUE SE ESTÁN EVALUANDO
         while(cantAnexosRevisados<cantidadAnexos && encontroAlMenosUno==0){
             int cantPorcAnexosRevisados=porcCantAnexos;
             while(cantPorcAnexosRevisados>0 && cantAnexosRevisados<cantidadAnexos){
@@ -293,8 +293,9 @@ public class GestorCiudades {
                         
                         if(resultadoRuta.getTiempoRuta()<mejorRuta.getTiempoRuta()){
                             mejorRuta=resultadoRuta;
+                            encontroAlMenosUno=1;//Se encontro una ruta disponible
                         }
-                        encontroAlMenosUno=1;//Se encontro una ruta disponible
+                        
                     }
                     anexosRevisados[indRutaARevisar]=1;
                     cantPorcAnexosRevisados--;
