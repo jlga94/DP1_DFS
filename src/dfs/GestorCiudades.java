@@ -108,9 +108,22 @@ public class GestorCiudades {
         
     }
     
+    private void instanciarVecesRecorridasCiudades(){
+        Set set = ciudades.entrySet();
+        Iterator i = set.iterator();
+        while(i.hasNext()) {
+            Map.Entry me = (Map.Entry)i.next();
+            Ciudad ciudadActual=(Ciudad)me.getValue();
+            ciudadActual.instanciarCantidadIdasRutasAnexas();
+            
+        }
+        
+    }
+    
     public GestorCiudades(String archVuelos,String archAeropuertos,String archHusos) throws FileNotFoundException{
         leerCiudades(archAeropuertos,archHusos);
         leerRutas(archVuelos);
+        instanciarVecesRecorridasCiudades();
         this.rnd=new Random();
     }
     
@@ -162,48 +175,50 @@ public class GestorCiudades {
         
         
         RutaEscogida mejorRuta= new RutaEscogida(1000);//Numero alto para que sea reemplazado en le primera iteración
+        int indiceRutaEscogida=-1;
         
         ArrayList<Ruta> RutasAnexadasO=ciudadO.getRutasAnexas();
         int cantidadAnexos=RutasAnexadasO.size();
-        int [] anexosRevisados=new int[cantidadAnexos];
         int cantAnexosRevisados=0;
         int encontroAlMenosUno=0; 
-        int porcCantAnexos=cantidadAnexos/8;//PORCENTAJE DE LAS RUTAS QUE SE ESTÁN EVALUANDO
+        int porcCantAnexos=cantidadAnexos/4;//PORCENTAJE DE LAS RUTAS QUE SE ESTÁN EVALUANDO
+        
+        ArrayList<Integer> listaRutasAEscoger=crearListaAEscoger(ciudadO);
+        
         while(cantAnexosRevisados<cantidadAnexos && encontroAlMenosUno==0){
             int cantPorcAnexosRevisados=porcCantAnexos;
             while(cantPorcAnexosRevisados>0 && cantAnexosRevisados<cantidadAnexos){
                 
-                int indRutaARevisar=rnd.nextInt(cantidadAnexos);//Aqui se puede meter el colonia de hormigas
+                int indRutaListaARevisar=rnd.nextInt(listaRutasAEscoger.size());//Aqui se puede meter el colonia de hormigas                
+                int indRutaARevisar=listaRutasAEscoger.get(indRutaListaARevisar);
+                removerElementos_Lista(indRutaARevisar,listaRutasAEscoger);// Se remueve los elementos repetidos
                 
-                if(anexosRevisados[indRutaARevisar]==0){
-                    Ruta rutaActual=RutasAnexadasO.get(indRutaARevisar);
-                    if(rutaActual.getCiudadFin().equals("SBBR")){
-                        int a=1;
+                Ruta rutaActual=RutasAnexadasO.get(indRutaARevisar);
+
+
+                RutaEscogida resultadoRutaInicial = new RutaEscogida(0);
+
+                RutaEscogida resultadoRuta=recursiveSearch(rutaActual,resultadoRutaInicial,maxTiempoVuelo,codCiudadF,9);//era 9 aca 
+                if(resultadoRuta!=null){
+                    //AQUI SE EVALUA LO QUE SE TENGA QUE EVALUAR PARA ESCOGER EL MEJOR
+
+                    if(resultadoRuta.getTiempoRuta()<mejorRuta.getTiempoRuta()){
+                        mejorRuta=resultadoRuta;
+                        indiceRutaEscogida=indRutaARevisar;//Se guarda el indice de la rutaescogida para agregar en uno dicha ciudad
+                        encontroAlMenosUno=1;//Se encontro una ruta disponible
                     }
-                    
-                    
-                    RutaEscogida resultadoRutaInicial = new RutaEscogida(0);
-                    
-                    RutaEscogida resultadoRuta=recursiveSearch(rutaActual,resultadoRutaInicial,maxTiempoVuelo,codCiudadF,9);//era 9 aca 
-                    if(resultadoRuta!=null){
-                        //AQUI SE EVALUA LO QUE SE TENGA QUE EVALUAR PARA ESCOGER EL MEJOR
-                        
-                        if(resultadoRuta.getTiempoRuta()<mejorRuta.getTiempoRuta()){
-                            mejorRuta=resultadoRuta;
-                            encontroAlMenosUno=1;//Se encontro una ruta disponible
-                        }
-                        
-                    }
-                    anexosRevisados[indRutaARevisar]=1;
-                    cantPorcAnexosRevisados--;
-                    cantAnexosRevisados++;
+
                 }
+                cantPorcAnexosRevisados--;
+                cantAnexosRevisados++;
+                
             }
         }
         if(mejorRuta.getTiempoRuta()==1000)
             System.out.println("Numero de Pedido: "+numPedido+" No se encontró ruta");
         else{
             System.out.println("Numero de Pedido: "+numPedido+ " Mejor Ruta: "+mejorRuta.imprimirRecorrido()+" Mejor Tiempo: "+mejorRuta.getTiempoRuta());
+            ciudadO.incrementarRutaEscogida(indiceRutaEscogida);
             //agregarPaquetes_Ciudades(mejorRuta,cantPaquetes);
             //this.TiempoEntregaPaquetes+=mejorTiempo*cantPaquetes;
             //actualizarAlmacen(mejorRuta, cantPaquetes,horaPedido,fechaPedido,mejorTiempo,codCiudadF);
@@ -440,7 +455,7 @@ public class GestorCiudades {
     
     private RutaEscogida recursiveSearch(Ruta rutaActual,RutaEscogida resultadoRuta,int maxTiempoVuelo,String ciudadFinal,int horaPartida){
         
-        int tiempoTraslado=calcularTiempoTraslado(rutaActual, horaPartida);
+        int tiempoTraslado=calcularTiempoTraslado(rutaActual);
         int tiempoEspera=calcularTiempoEspera(rutaActual, horaPartida);
         
         //int tiempoTraslado_Espera=calcularTiempo(rutaActual,horaPartida);
@@ -503,7 +518,7 @@ public class GestorCiudades {
         }
     }
     
-    private int calcularTiempoTraslado (Ruta rutaActual,int horaPartida){
+    private int calcularTiempoTraslado (Ruta rutaActual){
         int tiempoTraslado;       
         Ciudad ciudadI=ciudades.get(rutaActual.getCiudadOrigen());
         Ciudad ciudadF=ciudades.get(rutaActual.getCiudadFin());
@@ -526,29 +541,6 @@ public class GestorCiudades {
     }
     
     
-    
-    private int calcularTiempo(Ruta rutaActual,int horaPartida){
-        String[] hhmm=rutaActual.getHoraOrigen().trim().split(":");
-        int hhOrigen=Integer.parseInt(hhmm[0]);
-        int tiempoEspera;
-        if(horaPartida<=hhOrigen)
-            tiempoEspera=hhOrigen-horaPartida;
-        else
-            tiempoEspera=24-(horaPartida-hhOrigen);
-        
-        int tiempoTraslado;
-        
-        Ciudad ciudadI=ciudades.get(rutaActual.getCiudadOrigen());
-        Ciudad ciudadF=ciudades.get(rutaActual.getCiudadFin());
-        if(ciudadI.getContinente().equals(ciudadF.getContinente()))
-            tiempoTraslado=12;
-        else
-            tiempoTraslado=24;
-                    
-        return tiempoEspera+tiempoTraslado;
-    }
-    
-    
     public void imprimirCiudades(){
         Set set = ciudades.entrySet();
         Iterator i = set.iterator();
@@ -562,6 +554,28 @@ public class GestorCiudades {
         }
     }
     
+    private ArrayList<Integer> crearListaAEscoger(Ciudad ciudadO){        
+        ArrayList<Integer> listaAEscoger = new ArrayList<Integer>();
+        
+        ArrayList<Integer> cantVisitadasRutas = ciudadO.getCantVisitadasRutasAnexas();
+        
+        int indCantVisitadasRutas=0;
+        for(Integer cantVisita : cantVisitadasRutas){
+            
+            while(cantVisita-->0){
+                listaAEscoger.add(indCantVisitadasRutas);
+            }
+            indCantVisitadasRutas++;
+        }
+        
+        return listaAEscoger;
+    }
     
+    private void removerElementos_Lista(Integer ind, ArrayList<Integer> lst){
+        ArrayList<Integer> rmv= new ArrayList<Integer>();
+        rmv.add(ind);
+        
+        lst.removeAll(rmv);
+    }
     
 }

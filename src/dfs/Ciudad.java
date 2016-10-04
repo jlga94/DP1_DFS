@@ -23,7 +23,9 @@ public class Ciudad {
     private int cantPaquetes;
     public ArrayList<Ruta> rutasAnexas=new ArrayList<Ruta>();
     public TreeMap proyeccionAlmacen = new TreeMap();
-
+    private ArrayList<Integer> cantVisitadasRutasAnexas=new ArrayList<Integer>();
+    
+    
     public Ciudad(String id,String codigo,String nombre,String pais,String continente){
         this.Id=Integer.parseInt(id);
         this.codigo=codigo;
@@ -37,40 +39,9 @@ public class Ciudad {
             for(int j=0;j<24;++j){
                 temp.put(j*100, 0);
                 temp.put(j*100+1, 0);
-                /*proyeccionAlmacen.put(i, new Pair(j*100,0));
-                proyeccionAlmacen.put(i, new Pair(j*100+1,0));*/
-                /*proyeccionAlmacen.put(new Pair(i,j*100),0);
-                proyeccionAlmacen.put(new Pair(i,j*100+1),0);*/
+                
             }
-        }
-        /*for(int i=0;i<24;i++){
-            
-            proyeccionAlmacen.put("Lunes",new Pair(i,0)  );
-        }
-        for(int i=0;i<24;i++){
-            
-            proyeccionAlmacen.put("Martes",new Pair(i,0)  );
-        }
-        for(int i=0;i<24;i++){
-            
-            proyeccionAlmacen.put("Miercoles",new Pair(i,0)  );
-        }
-        for(int i=0;i<24;i++){
-            
-            proyeccionAlmacen.put("Jueves",new Pair(i,0)  );
-        }
-        for(int i=0;i<24;i++){
-            
-            proyeccionAlmacen.put("Viernes",new Pair(i,0)  );
-        }
-        for(int i=0;i<24;i++){
-            
-            proyeccionAlmacen.put("Sabado",new Pair(i,0)  );
-        }
-        for(int i=0;i<24;i++){
-            
-            proyeccionAlmacen.put("Domingo",new Pair(i,0)  );
-        }*/
+        }     
     }
     
     /**
@@ -189,4 +160,24 @@ public class Ciudad {
         this.cantPaquetes = cantPaquetes;
     }
     
+    public void instanciarCantidadIdasRutasAnexas(){
+        for(int i=0;i<this.rutasAnexas.size();i++){
+            this.cantVisitadasRutasAnexas.add(1);//Se instancian con 1 para empezas con probabilidad 1
+        }
+        
+    }
+
+    public void incrementarRutaEscogida(int indiceRuta){
+        int cant=cantVisitadasRutasAnexas.get(indiceRuta);
+        cantVisitadasRutasAnexas.set(indiceRuta, cant+1);
+    }
+    
+    /**
+     * @return the cantVisitadasRutasAnexas
+     */
+    public ArrayList<Integer> getCantVisitadasRutasAnexas() {
+        return cantVisitadasRutasAnexas;
+    }
+
+
 }
