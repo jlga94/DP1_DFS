@@ -127,10 +127,37 @@ public class GestorCiudades {
         this.rnd=new Random();
     }
     
+    private void limpiarAlmacenes(String fechaActual){
+        if(fechaActual.equals(""))return;
+        
+        Calendar c=Calendar.getInstance();
+        try {
+            c.setTime(new SimpleDateFormat("dd/M/yyyy").parse(fechaActual));
+        } catch (ParseException ex) {
+            Logger.getLogger(DFS.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        int dayweek=c.get(Calendar.DAY_OF_WEEK)-2;//porque la semana comienza el domingo y el arreglo del 0-6
+        
+        //recorremos cada ciudad para limpiar las proyecciones una vez cambiado el dia
+        Set set = ciudades.entrySet();
+        Iterator i = set.iterator();
+        while(i.hasNext()) {
+            Map.Entry me = (Map.Entry)i.next();
+            Ciudad ciudadActual=(Ciudad)me.getValue();
+            
+            TreeMap proyecciones = (TreeMap)ciudadActual.proyeccionAlmacen.get(dayweek);
+            for(int j=0;j<24;++j){
+                proyecciones.put(j*100, 0);
+                proyecciones.put(j*100+1, 0);
+            }
+        }
+    }
+    
     public void asignarPedidos(String archPedidos)throws FileNotFoundException{
         BufferedReader brPedidos = new BufferedReader(new FileReader(archPedidos));
         String linea;
         //int horaPedido=9;
+        String fechaActual="";
         try{
             int numPedido=1;
             while((linea=brPedidos.readLine()) != null){
@@ -141,7 +168,10 @@ public class GestorCiudades {
                 String horaPedido=datos[3];
                 //String horaPedido="Humo";
                 String fechaPedido=datos[4];
-                
+                if(!fechaPedido.equals(fechaActual)){
+                    limpiarAlmacenes(fechaActual);
+                    fechaActual=fechaPedido;
+                }
                 DFS(codCiudadO,codCiudadF,numPedido,horaPedido,cantPaquetes,fechaPedido);
                 
                 numPedido++;
@@ -292,97 +322,6 @@ public class GestorCiudades {
                 temporal.put(horaLlegadaDestino*100+1, valorActual);
             }
         }
-        
-        /*for (Ruta temp : ciudades.get(puntos[0]).rutasAnexas) {
-            if(temp.getCiudadFin().equals(puntos[1])){
-                String[] horasModificadas=temp.getHoraOrigen().split(":");
-                int horaSalidaVuelo=Integer.parseInt(horasModificadas[0]);
-                if(horaSalidaVuelo<horaLlegada){
-                    int tempHora=horaLlegada;
-                    TreeMap temporal =(TreeMap) ciudades.get(puntos[0]).proyeccionAlmacen.get(dayweek);
-                    while(tempHora<23){
-                        int valorActual=(int)temporal.get(tempHora*100+1);//aqui seria la hora no 900
-                        temporal.put(tempHora*100, valorActual+cantPaquetes);
-                        temporal.put(tempHora*100+1, valorActual+cantPaquetes);
-                        tempHora++;
-                    }
-                    tempHora=0;
-                    temporal =(TreeMap) ciudades.get(puntos[0]).proyeccionAlmacen.get(dayweek+1);
-                    while(tempHora<horaSalidaVuelo){
-                        int valorActual=(int)temporal.get(tempHora*100+1);//aqui seria la hora no 900
-                        temporal.put(tempHora*100, valorActual+cantPaquetes);
-                        temporal.put(tempHora*100+1, valorActual+cantPaquetes);
-                        tempHora++;
-                    }
-                }
-                else{
-                    int tempHora=horaLlegada;
-                    TreeMap temporal =(TreeMap) ciudades.get(puntos[0]).proyeccionAlmacen.get(dayweek);
-                    while(tempHora<horaSalidaVuelo){
-                        int valorActual=(int)temporal.get(tempHora*100+1);//aqui seria la hora no 900
-                        temporal.put(tempHora*100, valorActual+cantPaquetes);
-                        temporal.put(tempHora*100+1, valorActual+cantPaquetes);
-                        tempHora++;
-                    }
-                }
-                horasModificadas=temp.getHoraFin().split(":");
-                horaLlegada=Integer.parseInt(horasModificadas[0]);
-                break;
-            }
-        }*/
-        //actualizamos los almacenes por cada punto que se recorre durante el viaje
-        /*int k=0;
-        for (String ciudad : puntos) {
-            if(k==0)continue;//porque ya se realizo el primer punto
-            else if(k==puntos.length)break;
-            k++;*/
-//            TreeMap temp =(TreeMap) ciudades.get(ciudad).proyeccionAlmacen.get(dayweek);
-//            int valorActual=(int)temp.get(horaLlegada*100+1);//aqui seria la hora no 900
-//            temp.put(horaLlegada*100, valorActual+cantPaquetes);
-//            if(ciudad.equals(ciudadLlegada))temp.put(horaLlegada*100+1, valorActual);
-//            else temp.put(horaLlegada*100+1, valorActual+cantPaquetes);
-    
-    
-    
-    
-            /*for (Ruta temp : ciudades.get(ciudad).rutasAnexas) {
-                if(temp.getCiudadFin().equals(puntos[k+1])){
-                    String[] horasModificadas=temp.getHoraOrigen().split(":");
-                    int horaSalidaVuelo=Integer.parseInt(horasModificadas[0]);
-                    if(horaSalidaVuelo<horaLlegada){
-                        int tempHora=horaLlegada;
-                        TreeMap temporal =(TreeMap) ciudades.get(ciudad).proyeccionAlmacen.get(dayweek);
-                        while(tempHora<23){
-                            int valorActual=(int)temporal.get(tempHora*100+1);//aqui seria la hora no 900
-                            temporal.put(tempHora*100, valorActual+cantPaquetes);
-                            temporal.put(tempHora*100+1, valorActual+cantPaquetes);
-                            tempHora++;
-                        }
-                        tempHora=0;
-                        temporal =(TreeMap) ciudades.get(ciudad).proyeccionAlmacen.get(dayweek+1);
-                        while(tempHora<horaSalidaVuelo){
-                            int valorActual=(int)temporal.get(tempHora*100+1);//aqui seria la hora no 900
-                            temporal.put(tempHora*100, valorActual+cantPaquetes);
-                            temporal.put(tempHora*100+1, valorActual+cantPaquetes);
-                            tempHora++;
-                        }
-                    }
-                    else{
-                        int tempHora=horaLlegada;
-                        TreeMap temporal =(TreeMap) ciudades.get(ciudad).proyeccionAlmacen.get(dayweek);
-                        while(tempHora<horaSalidaVuelo){
-                            int valorActual=(int)temporal.get(tempHora*100+1);//aqui seria la hora no 900
-                            temporal.put(tempHora*100, valorActual+cantPaquetes);
-                            temporal.put(tempHora*100+1, valorActual+cantPaquetes);
-                            tempHora++;
-                        }
-                    }
-                    horasModificadas=temp.getHoraFin().split(":");
-                    horaLlegada=Integer.parseInt(horasModificadas[0]);
-                    break;
-                }
-            }
-        }*/
     }
     
     /*private void actualizarAlmacen(String mejorRuta,int cantPaquetes,String horaPedido,String fechaPedido,int mejorTiempo,String ciudadLlegada){
