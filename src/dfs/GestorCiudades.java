@@ -198,6 +198,7 @@ public class GestorCiudades {
         Ciudad ciudadO=ciudades.get(codCiudadO);
         Ciudad ciudadF=ciudades.get(codCiudadF);
         int maxTiempoVuelo;
+        //Establece el tiempo maximo de vuelo
         if(ciudadO.getContinente().equals(ciudadF.getContinente()))
             maxTiempoVuelo=maxTiempoContinental;
         else
@@ -225,14 +226,15 @@ public class GestorCiudades {
                 
                 Ruta rutaActual=RutasAnexadasO.get(indRutaARevisar);
 
-
                 RutaEscogida resultadoRutaInicial = new RutaEscogida(0);
 
-                RutaEscogida resultadoRuta=recursiveSearch(rutaActual,resultadoRutaInicial,maxTiempoVuelo,codCiudadF,9);//era 9 aca 
+                String[] superTemporal=horaPedido.split(":");
+                
+                RutaEscogida resultadoRuta=recursiveSearch(rutaActual,resultadoRutaInicial,maxTiempoVuelo,codCiudadF,Integer.parseInt(superTemporal[0]),fechaPedido,cantPaquetes);//era 9 aca 
                 if(resultadoRuta!=null){
                     //AQUI SE EVALUA LO QUE SE TENGA QUE EVALUAR PARA ESCOGER EL MEJOR
 
-                    if(resultadoRuta.getTiempoRuta()<mejorRuta.getTiempoRuta()){
+                    if(resultadoRuta.getTiempoRuta()/maxTiempoVuelo + resultadoRuta.capacidades <mejorRuta.getTiempoRuta()/maxTiempoVuelo + mejorRuta.capacidades){
                         mejorRuta=resultadoRuta;
                         indiceRutaEscogida=indRutaARevisar;//Se guarda el indice de la rutaescogida para agregar en uno dicha ciudad
                         encontroAlMenosUno=1;//Se encontro una ruta disponible
@@ -241,7 +243,6 @@ public class GestorCiudades {
                 }
                 cantPorcAnexosRevisados--;
                 cantAnexosRevisados++;
-                
             }
         }
         if(mejorRuta.getTiempoRuta()==1000)
@@ -444,17 +445,83 @@ public class GestorCiudades {
         
     }
     
-    private RutaEscogida recursiveSearch(Ruta rutaActual,RutaEscogida resultadoRuta,int maxTiempoVuelo,String ciudadFinal,int horaPartida){
+    private int calcularEspacioAlmacenes(Ruta RutaActual, String fechaPedido){
+        return 0;
+    }
+    
+    
+    //POSIBLE FUENTE DE ERROR TIEMPO ENTRE TRASBORDES
+    private RutaEscogida recursiveSearch(Ruta rutaActual,RutaEscogida resultadoRuta,int maxTiempoVuelo,String ciudadFinal,int horaPartida, String fechaPedido,int cantidadPaquetes){//ACLARAR horaPartida?
         
         int tiempoTraslado=calcularTiempoTraslado(rutaActual);
         int tiempoEspera=calcularTiempoEspera(rutaActual, horaPartida);
         
+        //buscamos las ciudades para poder obtener las proyecciones de sus almacenes
+        Ciudad ciudadDestino=ciudades.get(rutaActual.getCiudadOrigen());
+        Ciudad ciudadOrigen=ciudades.get(rutaActual.getCiudadFin());
+   
+
+        //obtenemos el dia de la semana a examinar para el origen del pedido
+        Calendar c=Calendar.getInstance();
+        try {
+            c.setTime(new SimpleDateFormat("dd/M/yyyy").parse(fechaPedido));
+        } catch (ParseException ex) {
+            Logger.getLogger(DFS.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        int dayweek=c.get(Calendar.DAY_OF_WEEK)-2;//porque la semana comienza el domingo y el arreglo del 0-6
+
+        TreeMap almacenOrigen = (TreeMap) ciudadOrigen.proyeccionAlmacen.get(dayweek);        
+        
+        
+        
+        //SE REVISA SI EXISTE CAPACIDAD PARA ALMACENAR LOS PAQUETES DESDE QUE LLEGA EL PEDIDO HASTA QUE SE VAYA EL AVION
+        
+        if(horaPartida+tiempoEspera>23){//si supera el dia esperando el vuelo            
+            int tempHora=horaPartida;
+            while(tempHora<23){
+                //se revisa si la llegada al aeropuerto de origen desbordaria el almacen
+                if((int)(almacenOrigen.get(tempHora*100))+cantidadPaquetes>maxCapacidadCiudades)return null;                
+                tempHora++;
+            }
+            tempHora=0;
+            almacenOrigen =(TreeMap) ciudadOrigen.proyeccionAlmacen.get(dayweek+1);
+            while(tempHora<(horaPartida+tiempoEspera)%24){
+                //se revisa si la llegada al aeropuerto de origen desbordaria el almacen
+                if((int)(almacenOrigen.get(tempHora*100))+cantidadPaquetes>maxCapacidadCiudades)return null;                
+                tempHora++;
+            }
+        }
+        else{
+            int tempHora=horaPartida;
+            while(tempHora<horaPartida+tiempoEspera){
+                if((int)(almacenOrigen.get(tempHora*100))+cantidadPaquetes>maxCapacidadCiudades)return null;                
+                tempHora++;
+            }
+        }
+     
         //int tiempoTraslado_Espera=calcularTiempo(rutaActual,horaPartida);
         int tiempoTotalActualizado=resultadoRuta.getTiempoRuta()+tiempoTraslado+tiempoEspera;
         
+        int horaLLegada=tiempoTotalActualizado;
+        if(horaLLegada>23){
+            dayweek+=(horaLLegada/24);
+            horaLLegada%=24;
+        }
+        
+        if(dayweek>6)dayweek-=6;
+        
+        TreeMap almacenDestino = (TreeMap) ciudadDestino.proyeccionAlmacen.get(dayweek);
+        
+        //REVISA SI EXISTE ESPACIO CUANDO LLEGA EL PAQUETE
+        
+        //se revisa si la llegada al aeropuerto de destino desbordaria el almacen
+        if((int)(almacenDestino.get(horaLLegada*100))+cantidadPaquetes>maxCapacidadCiudades){return null;}
+        
+        
         if(tiempoTotalActualizado>maxTiempoVuelo){ // FALTA REVISAR LO DE LAS CAPACIDADES DE CIUDADES
-            return null;
-        }else{
+            return null;            
+        }
+        else{
             if(rutaActual.getCiudadFin().equals(ciudadFinal)){
                 RutaEscogida newresultadoRuta= new RutaEscogida(resultadoRuta);
                 
@@ -462,6 +529,7 @@ public class GestorCiudades {
                 newresultadoRuta.agregarTiempoEspera(tiempoEspera);
                 newresultadoRuta.agregarTiempoTraslado(tiempoTraslado);
                 newresultadoRuta.actualizarTiempoRuta(tiempoTraslado, tiempoEspera);
+                newresultadoRuta.capacidades+=((int)(almacenDestino.get(horaLLegada*100))+cantidadPaquetes+(int)almacenOrigen.get(horaPartida*100)+cantidadPaquetes)/(2*maxCapacidadCiudades);
                 
                 return newresultadoRuta;
             }
@@ -492,7 +560,7 @@ public class GestorCiudades {
                 continue;
             }
             
-            RutaEscogida newResultadoRuta=recursiveSearch(rutaNueva,updateResultadoRuta,maxTiempoVuelo,ciudadFinal,horaPartida);//era 9 aca
+            RutaEscogida newResultadoRuta=recursiveSearch(rutaNueva,updateResultadoRuta,maxTiempoVuelo,ciudadFinal,horaPartida,fechaPedido,cantidadPaquetes);
             
             //MejorRuta resultadoRuta=recursiveSearch(rutaNueva,tiempoTotalActualizado,maxTiempoVuelo,ciudadFinal,seguimientoRuta+"-"+rutaNueva.getCiudadOrigen(),horaPartida);
             if(newResultadoRuta!=null){

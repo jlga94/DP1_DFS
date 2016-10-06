@@ -14,6 +14,7 @@ import java.util.ArrayList;
 public class RutaEscogida {
     private ArrayList<Ruta> listaRutaEscogida ;        
     private int tiempoRuta;
+    public int capacidades=0;
     private ArrayList<Integer> tiemposEspera;
     private ArrayList<Integer> tiemposTraslado;
 
