@@ -138,7 +138,7 @@ public class GestorCiudades {
         } catch (ParseException ex) {
             Logger.getLogger(DFS.class.getName()).log(Level.SEVERE, null, ex);
         }
-        int dayweek=c.get(Calendar.DAY_OF_WEEK)-2;//porque la semana comienza el domingo y el arreglo del 0-6
+        int dayweek=c.get(Calendar.DAY_OF_WEEK)-1;//porque la semana comienza el domingo y el arreglo del 0-6
         
         //recorremos cada ciudad para limpiar las proyecciones una vez cambiado el dia
         Set set = ciudades.entrySet();
@@ -217,6 +217,15 @@ public class GestorCiudades {
         int encontroAlMenosUno=0; 
         int porcCantAnexos=cantidadAnexos/4;//PORCENTAJE DE LAS RUTAS QUE SE ESTÁN EVALUANDO
         
+        //obtenemos el dia de la semana a examinar para el origen del pedido
+        Calendar c=Calendar.getInstance();
+        try {
+            c.setTime(new SimpleDateFormat("dd/M/yyyy").parse(fechaPedido));
+        } catch (ParseException ex) {
+            Logger.getLogger(DFS.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        int dayweek=c.get(Calendar.DAY_OF_WEEK)-1;//porque la semana comienza el domingo y el arreglo del 0-6
+        
         ArrayList<Integer> listaRutasAEscoger=crearListaAEscoger(ciudadO);
         
         while(cantAnexosRevisados<cantidadAnexos && encontroAlMenosUno==0){
@@ -233,7 +242,8 @@ public class GestorCiudades {
 
                 String[] superTemporal=horaPedido.split(":");
                 
-                RutaEscogida resultadoRuta=recursiveSearch(rutaActual,resultadoRutaInicial,maxTiempoVuelo,codCiudadF,Integer.parseInt(superTemporal[0]),fechaPedido,cantPaquetes);
+                RutaEscogida resultadoRuta=recursiveSearch(rutaActual,resultadoRutaInicial,maxTiempoVuelo,codCiudadF,Integer.parseInt(superTemporal[0]),fechaPedido,cantPaquetes,dayweek);
+                
                 if(resultadoRuta!=null){
                     //AQUI SE EVALUA LO QUE SE TENGA QUE EVALUAR PARA ESCOGER EL MEJOR
 
@@ -256,24 +266,16 @@ public class GestorCiudades {
             System.out.println("Numero de Pedido: "+numPedido+ " Mejor Ruta: "+mejorRuta.imprimirRecorrido()+" Mejor Tiempo: "+mejorRuta.getTiempoRuta());
             ciudadO.incrementarRutaEscogida(indiceRutaEscogida);
             //agregarPaquetes_Ciudades(mejorRuta,cantPaquetes);
-            actualizarAlmacen(mejorRuta, cantPaquetes,horaPedido,fechaPedido,codCiudadF);
+            actualizarAlmacen(mejorRuta, cantPaquetes,horaPedido,fechaPedido,codCiudadF,dayweek);
         }
     }
     
-    private void actualizarAlmacen(RutaEscogida mejorRuta,int cantPaquetes,String horaPedido,String fechaPedido,String ciudadLlegada){
+    private void actualizarAlmacen(RutaEscogida mejorRuta,int cantPaquetes,String horaPedido,String fechaPedido,String ciudadLlegada,int dayweek){
         String[] hora=horaPedido.split(":");
         int horaLlegada= Integer.parseInt(hora[0]);//hora en la que llea el pedido
         //int horaTotal = mejorTiempo+ horaLlegada;
         //String[] puntos=mejorRuta.split("-");//puntos por los que pasa el envio
         
-        //dia de la semana en la que llega el paquete
-        Calendar c=Calendar.getInstance();
-        try {
-            c.setTime(new SimpleDateFormat("dd/M/yyyy").parse(fechaPedido));
-        } catch (ParseException ex) {
-            Logger.getLogger(DFS.class.getName()).log(Level.SEVERE, null, ex);
-        }
-        int dayweek=c.get(Calendar.DAY_OF_WEEK)-2;//porque la semana comienza el domingo y el arreglo del 0-6
         
         //actualizamos el almacen del primer lugar de origen hasta que sale el envio
         
@@ -329,27 +331,8 @@ public class GestorCiudades {
         }
     }
     
-    
-    
-    private void agregarPaquetes_Ciudades(String rutaEscogida,int cantPaquetesEnviados){
-        
-        
-        String[] ciudadesTranscurridas=rutaEscogida.trim().split("-");
-        for(String codCiudadActual:ciudadesTranscurridas){
-            Ciudad ciudadActual=ciudades.get(codCiudadActual);
-            int cantPaquetesActual=ciudadActual.getCantPaquetes();
-            ciudadActual.setCantPaquetes(cantPaquetesActual+cantPaquetesEnviados);
-        }
-        
-    }
-    
-    private int calcularEspacioAlmacenes(Ruta RutaActual, String fechaPedido){
-        return 0;
-    }
-    
-    
-    //POSIBLE FUENTE DE ERROR TIEMPO ENTRE TRASBORDES
-    private RutaEscogida recursiveSearch(Ruta rutaActual,RutaEscogida resultadoRuta,int maxTiempoVuelo,String ciudadFinal,int horaPartida, String fechaPedido,int cantidadPaquetes){//ACLARAR horaPartida?
+
+    private RutaEscogida recursiveSearch(Ruta rutaActual,RutaEscogida resultadoRuta,int maxTiempoVuelo,String ciudadFinal,int horaPartida, String fechaPedido,int cantidadPaquetes, int dayweek){//ACLARAR horaPartida?
         
         int tiempoTraslado=calcularTiempoTraslado(rutaActual);
         int tiempoEspera=calcularTiempoEspera(rutaActual, horaPartida);
@@ -360,17 +343,8 @@ public class GestorCiudades {
    
 
         //ARREGLAR EL DIA DE LA SEMANA - ACHO QUE NAO
-        // QUITAR LAS HORAS ESCOGIDAS SI ES QUE EN LA SIGUIENTE ITERACION NO SE ESCOGE, DEBERIA RESTARSE
         
         
-        //obtenemos el dia de la semana a examinar para el origen del pedido
-        Calendar c=Calendar.getInstance();
-        try {
-            c.setTime(new SimpleDateFormat("dd/M/yyyy").parse(fechaPedido));
-        } catch (ParseException ex) {
-            Logger.getLogger(DFS.class.getName()).log(Level.SEVERE, null, ex);
-        }
-        int dayweek=c.get(Calendar.DAY_OF_WEEK)-2;//porque la semana comienza el domingo y el arreglo del 0-6
 
         TreeMap almacenOrigen = (TreeMap) ciudadOrigen.proyeccionAlmacen.get(dayweek);        
         
@@ -461,7 +435,7 @@ public class GestorCiudades {
                 continue;
             }
             
-            RutaEscogida newResultadoRuta=recursiveSearch(rutaNueva,updateResultadoRuta,maxTiempoVuelo,ciudadFinal,horaPartida,fechaPedido,cantidadPaquetes);
+            RutaEscogida newResultadoRuta=recursiveSearch(rutaNueva,updateResultadoRuta,maxTiempoVuelo,ciudadFinal,horaPartida,fechaPedido,cantidadPaquetes,dayweek);
             
             //MejorRuta resultadoRuta=recursiveSearch(rutaNueva,tiempoTotalActualizado,maxTiempoVuelo,ciudadFinal,seguimientoRuta+"-"+rutaNueva.getCiudadOrigen(),horaPartida);
             if(newResultadoRuta!=null){
