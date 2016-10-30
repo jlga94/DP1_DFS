@@ -6,6 +6,7 @@
 package dfs;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.TreeMap;
 import javafx.util.Pair;
 
@@ -24,6 +25,7 @@ public class Ciudad {
     public ArrayList<Ruta> rutasAnexas=new ArrayList<Ruta>();
     public TreeMap proyeccionAlmacen = new TreeMap();
     private ArrayList<Integer> cantVisitadasRutasAnexas=new ArrayList<Integer>();
+    public HashMap<String,ArrayList<Ruta>> rutas = new HashMap<>(); // llave es el codigo de la ciudad destino, valor es las rutas posibles
 
     public Ciudad(String id,String codigo,String nombre,String pais,String continente){
         this.Id=Integer.parseInt(id);

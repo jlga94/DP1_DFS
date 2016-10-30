@@ -104,7 +104,7 @@ public class RutaEscogida {
             String cadena=this.listaRutaEscogida.get(0).getCiudadOrigen();//Se concatena la primera ciudad
             for(Ruta r : this.listaRutaEscogida){
                 cadena+="-"+r.getCiudadFin();
-            }
+            }       
             return cadena;
         }catch(ArrayIndexOutOfBoundsException e){
             System.out.println("Method Halted!, continuing doing the next thing");
