@@ -17,6 +17,9 @@ public class Ruta {
     private String ciudadFin;
     private String horaOrigen;
     private String horaFin;
+    
+    
+    
 
     public Ruta(String ciudadOrigen,String ciudadFin,String horaOrigen,String horaFin){
         this.ciudadFin=ciudadFin;

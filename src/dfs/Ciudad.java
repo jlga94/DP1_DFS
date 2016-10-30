@@ -38,10 +38,6 @@ public class Ciudad {
             for(int j=0;j<24;++j){
                 temp.put(j*100, 0);
                 temp.put(j*100+1, 0);
-                /*proyeccionAlmacen.put(i, new Pair(j*100,0));
-                proyeccionAlmacen.put(i, new Pair(j*100+1,0));*/
-                /*proyeccionAlmacen.put(new Pair(i,j*100),0);
-                proyeccionAlmacen.put(new Pair(i,j*100+1),0);*/
             }
         }
     }
