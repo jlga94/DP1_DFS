@@ -7,6 +7,9 @@ package dfs;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Set;
 import java.util.TreeMap;
 import javafx.util.Pair;
 
@@ -25,7 +28,7 @@ public class Ciudad {
     public ArrayList<Ruta> rutasAnexas=new ArrayList<Ruta>();
     public TreeMap proyeccionAlmacen = new TreeMap();
     private ArrayList<Integer> cantVisitadasRutasAnexas=new ArrayList<Integer>();
-    public HashMap<String,ArrayList<Ruta>> rutas = new HashMap<>(); // llave es el codigo de la ciudad destino, valor es las rutas posibles
+    public HashMap<String,ArrayList<ConjRutas>> rutas = new HashMap<>(); // llave es el codigo de la ciudad destino, valor es las rutas posibles
 
     public Ciudad(String id,String codigo,String nombre,String pais,String continente){
         this.Id=Integer.parseInt(id);
@@ -50,7 +53,25 @@ public class Ciudad {
     public int getId() {
         return Id;
     }
-
+    
+    public void print(){
+        System.out.println("========"+codigo+"========");
+        Set set = rutas.entrySet();
+        Iterator i = set.iterator();
+        while(i.hasNext()) {
+            Map.Entry me = (Map.Entry)i.next();
+            System.out.println(me.getKey() + ": ");
+            ArrayList<ConjRutas> conjRuta=(ArrayList<ConjRutas>)me.getValue();
+            for(int j=0;j<conjRuta.size();j++){
+                ConjRutas conj=conjRuta.get(j);
+                ArrayList<Ruta> vuelos=conj.vuelos;
+                for(int h=0;h<vuelos.size();h++){
+                    System.out.print(vuelos.get(h).getCiudadOrigen()+"-"+vuelos.get(h).getCiudadFin());                  
+                }
+                System.out.println();
+            }
+        }    
+    }
     /**
      * @param Id the Id to set
      */

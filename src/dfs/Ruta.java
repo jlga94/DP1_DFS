@@ -17,7 +17,9 @@ public class Ruta {
     private String ciudadFin;
     private String horaOrigen;
     private String horaFin;
-    
+    public int horaO;
+    public int horaF;
+    private int tiempo;
     
     
 
@@ -82,5 +84,19 @@ public class Ruta {
      */
     public void setHoraFin(String horaFin) {
         this.horaFin = horaFin;
+    }
+
+    /**
+     * @return the tiempo
+     */
+    public int getTiempo() {
+        return tiempo;
+    }
+
+    /**
+     * @param tiempo the tiempo to set
+     */
+    public void setTiempo(int tiempo) {
+        this.tiempo = tiempo;
     }
 }

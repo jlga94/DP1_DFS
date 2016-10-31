@@ -85,8 +85,17 @@ public class GestorCiudades {
                 String ciudadF=datos[1];
                 String horaO=datos[2];
                 String horaF=datos[3];
+
+                String[] hhmm=horaO.split(":");        
+                int horaPartida=Integer.parseInt(hhmm[0]);
+                String[] hhmm2=horaF.split(":");        
+                int horaFin=Integer.parseInt(hhmm2[0]);
                 
                 Ruta newRuta=new Ruta(ciudadO,ciudadF,horaO,horaF);
+                newRuta.horaF=horaFin;
+                newRuta.horaO=horaPartida;
+                if(ciudades.get(ciudadO).getContinente().equals(ciudades.get(ciudadF).getContinente())) newRuta.setTiempo(12);
+                else newRuta.setTiempo(24);
                 Ciudad ciudadOrigen=ciudades.get(ciudadO);
                 ciudadOrigen.agregarRuta(newRuta);
             }
@@ -122,13 +131,58 @@ public class GestorCiudades {
     public GestorCiudades(String archVuelos,String archAeropuertos,String archHusos) throws FileNotFoundException{
         leerCiudades(archAeropuertos,archHusos);
         leerRutas(archVuelos);
+        generarConjRutas();//generar todas las rutas posibles
         instanciarVecesRecorridasCiudades();
         
         //UTILIZAR ALGORITMO DE TODAS LAS CIUDADES A TODAS LAS CIUDADES
         
         this.rnd=new Random();
     }
-    
+    public void generarConjRutas(){
+        int tEspera;
+        int tiempoRuta;
+        for(Ciudad ciudad : ciudades.values()) {
+            ArrayList<Ruta>vuelos = ciudad.rutasAnexas;
+            for(int i=0;i<vuelos.size();i++){
+                String destino=vuelos.get(i).getCiudadFin();
+                if(!ciudad.rutas.containsKey(destino)){ // si todavia no tiene ninguna ruta ese destino
+                    ArrayList<ConjRutas> rutas= new ArrayList<>();
+                    rutas.add(new ConjRutas(vuelos.get(i),vuelos.get(i).getTiempo()));
+                    ciudad.rutas.put(destino, rutas);                    
+                }
+                else{
+                    ArrayList<ConjRutas> rutas=ciudad.rutas.get(destino);
+                    rutas.add(new ConjRutas(vuelos.get(i),vuelos.get(i).getTiempo()));
+                    ciudad.rutas.put(destino,rutas);    
+                }
+                
+                // caso con Escala
+                String ciudInter=vuelos.get(i).getCiudadFin();
+                Ciudad ciudadIntermedia=ciudades.get(ciudInter);
+                for(int j=0;j<ciudadIntermedia.rutasAnexas.size();j++){
+                    Ruta vuelo2=ciudadIntermedia.rutasAnexas.get(j);
+                    String destino2=vuelo2.getCiudadFin();
+                    if(ciudad.getContinente().equals(ciudades.get(destino2).getContinente())) continue;
+                    tEspera=vuelo2.horaO-vuelos.get(i).horaF;
+                    if(tEspera<0)tEspera+=24;
+                    tiempoRuta=vuelos.get(i).getTiempo()+vuelo2.getTiempo()+tEspera;
+                    if(tiempoRuta>48) continue; // si se demora más de 48 horas, no tomar en cuenta
+                    if(!ciudad.rutas.containsKey(destino2)){ // si todavia no tiene ninguna ruta ese destino
+                        ArrayList<ConjRutas> rutas= new ArrayList<>();
+                        ConjRutas ruta=new ConjRutas(vuelos.get(i),vuelo2,tiempoRuta);
+                        rutas.add(ruta);
+                        ciudad.rutas.put(destino2, rutas);                    
+                    }
+                    else{
+                        ArrayList<ConjRutas> rutas=ciudad.rutas.get(destino2);
+                        ConjRutas ruta=new ConjRutas(vuelos.get(i),vuelo2,tiempoRuta);
+                        rutas.add(ruta);
+                        ciudad.rutas.put(destino2,rutas);    
+                    }
+                }
+            }
+        }          
+    }
     private void limpiarAlmacenes(String fechaActual){
         if(fechaActual.equals(""))return;
         
@@ -486,6 +540,7 @@ public class GestorCiudades {
             System.out.println("Nombre:"+ciudadActual.getNombre()+" Cantidad Paquetes: "+ciudadActual.getCantPaquetes());
             
         }
+        ciudades.get("SKBO").print();
     }
     
     private ArrayList<Integer> crearListaAEscoger(Ciudad ciudadO){        
