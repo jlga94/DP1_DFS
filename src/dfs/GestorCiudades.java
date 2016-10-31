@@ -402,31 +402,8 @@ public class GestorCiudades {
 
         TreeMap almacenOrigen = (TreeMap) ciudadOrigen.proyeccionAlmacen.get(dayweek);        
         
-        
-        
-        //SE REVISA SI EXISTE CAPACIDAD PARA ALMACENAR LOS PAQUETES DESDE QUE LLEGA EL PEDIDO HASTA QUE SE VAYA EL AVION        
-        if(horaPartida+tiempoEspera>23){//si supera el dia esperando el vuelo            
-            int tempHora=horaPartida;
-            while(tempHora<23){
-                //se revisa si la llegada al aeropuerto de origen desbordaria el almacen
-                if((int)(almacenOrigen.get(tempHora*100))+cantidadPaquetes>maxCapacidadCiudades)return null;                
-                tempHora++;
-            }
-            tempHora=0;
-            almacenOrigen =(TreeMap) ciudadOrigen.proyeccionAlmacen.get(dayweek+1);
-            while(tempHora<(horaPartida+tiempoEspera)%24){
-                //se revisa si la llegada al aeropuerto de origen desbordaria el almacen
-                if((int)(almacenOrigen.get(tempHora*100))+cantidadPaquetes>maxCapacidadCiudades)return null;                
-                tempHora++;
-            }
-        }
-        else{
-            int tempHora=horaPartida;
-            while(tempHora<horaPartida+tiempoEspera){
-                if((int)(almacenOrigen.get(tempHora*100))+cantidadPaquetes>maxCapacidadCiudades)return null;                
-                tempHora++;
-            }
-        }
+        if(hayCapacidad(ciudadOrigen,dayweek, horaPartida, tiempoEspera,cantidadPaquetes)==0)
+            return null;
      
         //int tiempoTraslado_Espera=calcularTiempo(rutaActual,horaPartida);
         int tiempoTotalActualizado=resultadoRuta.getTiempoRuta()+tiempoTraslado+tiempoEspera;
@@ -526,6 +503,38 @@ public class GestorCiudades {
         else
             tiempoEspera=24-(horaPartida-hhOrigen);
         return tiempoEspera;
+    }
+    
+    private int hayCapacidad(Ciudad ciudadOrigen,int dayweek,int horaPartida,int tiempoEspera,int cantidadPaquetes){
+        
+        
+        TreeMap almacenOrigen = (TreeMap) ciudadOrigen.proyeccionAlmacen.get(dayweek);  
+        
+        //SE REVISA SI EXISTE CAPACIDAD PARA ALMACENAR LOS PAQUETES DESDE QUE LLEGA EL PEDIDO HASTA QUE SE VAYA EL AVION        
+        if(horaPartida+tiempoEspera>23){//si supera el dia esperando el vuelo            
+            int tempHora=horaPartida;
+            while(tempHora<23){
+                //se revisa si la llegada al aeropuerto de origen desbordaria el almacen
+                if((int)(almacenOrigen.get(tempHora*100))+cantidadPaquetes>maxCapacidadCiudades) return 0;                
+                tempHora++;
+            }
+            tempHora=0;
+            almacenOrigen =(TreeMap) ciudadOrigen.proyeccionAlmacen.get(dayweek+1);
+            while(tempHora<(horaPartida+tiempoEspera)%24){
+                //se revisa si la llegada al aeropuerto de origen desbordaria el almacen
+                if((int)(almacenOrigen.get(tempHora*100))+cantidadPaquetes>maxCapacidadCiudades)return 0;                
+                tempHora++;
+            }
+        }
+        else{
+            int tempHora=horaPartida;
+            while(tempHora<horaPartida+tiempoEspera){
+                if((int)(almacenOrigen.get(tempHora*100))+cantidadPaquetes>maxCapacidadCiudades)return 0;                
+                tempHora++;
+            }
+        }
+    
+        return 1;
     }
     
     
