@@ -20,6 +20,7 @@ public class Ruta {
     public int horaO;
     public int horaF;
     private int tiempo;
+    public int[] cantidadPaquetesXDia = new int[7]; //Cantidad de paquetes que hay en el dia, será tratado como un arreglo circular
     
     
 
@@ -99,4 +100,13 @@ public class Ruta {
     public void setTiempo(int tiempo) {
         this.tiempo = tiempo;
     }
+    
+    public int getIndCapacidad(int indice){
+        return this.cantidadPaquetesXDia[indice];
+    }
+    
+    public void setIndCapacidad(int indice,int capacidadIndice){
+        this.cantidadPaquetesXDia[indice]=capacidadIndice;
+    }
+    
 }
