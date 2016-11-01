@@ -186,7 +186,7 @@ public class GestorCiudades {
             }
         }          
     }
-    private void limpiarAlmacenes(String fechaActual){
+    private void limpiarCapacidad_Almacenes_Rutas(String fechaActual){
         if(fechaActual.equals(""))return;
         
         Calendar c=Calendar.getInstance();
@@ -205,9 +205,14 @@ public class GestorCiudades {
             Ciudad ciudadActual=(Ciudad)me.getValue();
             
             TreeMap proyecciones = (TreeMap)ciudadActual.proyeccionAlmacen.get(dayweek);
-            for(int j=0;j<24;++j){
+            for(int j=0;j<24;++j){//24 HORAS
                 proyecciones.put(j*100, 0);
                 proyecciones.put(j*100+1, 0);
+            }
+            
+            ArrayList<Ruta> rutasAnexas = ciudadActual.getRutasAnexas();//Se deben limpiar la capacidad del dia en la ruta
+            for(Ruta r: rutasAnexas){
+                r.setIndCapacidad(dayweek, 0);
             }
         }
     }
@@ -228,7 +233,7 @@ public class GestorCiudades {
                 String fechaPedido=datos[4];
                 
                 if(!fechaPedido.equals(fechaActual)){//Se limpia el dia si ha cambiado de todos los almacenes
-                    limpiarAlmacenes(fechaActual);
+                    limpiarCapacidad_Almacenes_Rutas(fechaActual);
                     fechaActual=fechaPedido;
                 }
                 DFS(codCiudadO,codCiudadF,numPedido,horaPedido,cantPaquetes,fechaPedido);
@@ -323,7 +328,7 @@ public class GestorCiudades {
             System.out.println("Numero de Pedido: "+numPedido+ " Mejor Ruta: "+mejorRuta.imprimirRecorrido()+" Mejor Tiempo: "+mejorRuta.getTiempoRuta());
             ciudadO.incrementarRutaEscogida(indiceRutaEscogida);
             //agregarPaquetes_Ciudades(mejorRuta,cantPaquetes);
-            actualizarAlmacen(mejorRuta, cantPaquetes,horaPedido,fechaPedido,codCiudadF,dayweek);
+            actualizarCapacidadAlmacen_Rutas(mejorRuta, cantPaquetes,horaPedido,fechaPedido,codCiudadF,dayweek);
         }
     }
 
@@ -479,7 +484,7 @@ public class GestorCiudades {
         return 1;
     }
     
-    private void actualizarAlmacen(RutaEscogida mejorRuta,int cantPaquetes,String horaPedido,String fechaPedido,String ciudadLlegada,int dayweek){
+    private void actualizarCapacidadAlmacen_Rutas(RutaEscogida mejorRuta,int cantPaquetes,String horaPedido,String fechaPedido,String ciudadLlegada,int dayweek){
         String[] hora=horaPedido.split(":");
         int horaLlegada= Integer.parseInt(hora[0]);//hora en la que llea el pedido        
         
@@ -489,7 +494,7 @@ public class GestorCiudades {
         
         for(int i=0;i<recorrido.size();++i){
             Ruta punto=recorrido.get(i);
-            int capacidadRutaDia=punto.getIndCapacidad(dayweek);
+            int capacidadRutaDia=punto.getIndCapacidad(dayweek);//Se actualiza la capacidad de las rutas escogidas
             punto.setIndCapacidad(dayweek, capacidadRutaDia+cantPaquetes);
             
             int tiempoEspera = mejorRuta.getTiemposEspera().get(i);
