@@ -21,9 +21,10 @@ public class DFS {
         
         
         GestorCiudades gestor= new GestorCiudades("Extras/_plan_vuelo.txt", "Extras/_aeropuertos.OACI.txt", "Extras/_husos_horarios.txt");
-        gestor.asignarPedidos("Extras/_pedidos_N.txt");
+        gestor.lineaInicial();
+        //gestor.asignarPedidos("Extras/_pedidos_N.txt");
+        gestor.asignarPedidos();
         gestor.imprimirCiudades();
-        
     }
     
 }

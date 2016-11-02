@@ -217,6 +217,27 @@ public class GestorCiudades {
         }
     }
     
+    public void asignarPedidos()throws FileNotFoundException{
+
+        int numPedido=1;
+        Ciudad siguienteCiudad;
+        String fechaActual="";
+        while((siguienteCiudad=siguienteEnvio()) != null){            
+            
+            if(!siguienteCiudad.getUltimaFecha().equals(fechaActual)){//Se limpia el dia si ha cambiado de todos los almacenes
+                limpiarCapacidad_Almacenes_Rutas(fechaActual);
+                fechaActual=siguienteCiudad.getUltimaFecha();
+            }
+            DFS(siguienteCiudad.getCodigo(),siguienteCiudad.getUltimoDestino(),numPedido,siguienteCiudad.getUltimaHora(),1,siguienteCiudad.getUltimaFecha());
+            
+            siguienteCiudad.avanzarBuffer();
+            
+            numPedido++;
+        }
+        System.out.println("Tiempo Total por paquetes: "+this.TiempoEntregaPaquetes);
+        
+    }
+    
     public void asignarPedidos(String archPedidos)throws FileNotFoundException{
         BufferedReader brPedidos = new BufferedReader(new FileReader(archPedidos));
         String linea;
@@ -583,6 +604,104 @@ public class GestorCiudades {
         rmv.add(ind);
         
         lst.removeAll(rmv);
+    }
+    
+    private Ciudad siguienteEnvio(){
+        Set set = ciudades.entrySet();
+        Iterator i = set.iterator();
+        
+        Ciudad siguiente=null;
+        Date menor=null;
+        
+        while(i.hasNext()) {
+            Map.Entry me = (Map.Entry)i.next();
+            Ciudad ciudadActual=(Ciudad)me.getValue();
+            
+            if(ciudadActual.getUltimaHora()==null)continue;
+            
+            SimpleDateFormat formatter = new SimpleDateFormat("dd/MM/yyyy-H:m");
+            String fechaTemporal=ciudadActual.getUltimaFecha()+"-"+ciudadActual.getUltimaHora();
+            try{
+                Date fechaHoraCiudad=formatter.parse(fechaTemporal);
+                if(menor==null){
+                    menor=fechaHoraCiudad;
+                    siguiente=ciudadActual;
+                }
+                else if(fechaHoraCiudad.compareTo(menor)<0){
+                    menor=fechaHoraCiudad;
+                    siguiente=ciudadActual;
+                }
+            } catch (ParseException e) {
+                e.printStackTrace();
+            }
+        }
+        if(siguiente==null)return null;
+        return siguiente;
+    }
+    
+    public void lineaInicial() throws FileNotFoundException{
+        //buscamos la primera linea de cada archivo asociado a cada ciudad
+        //SOLO UNA VEZ SE EJECUTA.
+        
+        //iteracion sobre las ciudades
+        Set set = ciudades.entrySet();
+        Iterator i = set.iterator();
+        while(i.hasNext()) {
+            Map.Entry me = (Map.Entry)i.next();
+            Ciudad ciudadActual=(Ciudad)me.getValue();
+             
+            BufferedReader archivoCiudad= ciudadActual.getBrAeropuertos();
+            String linea;
+            String[] temporalArchivo=new String[1000];
+            int numeroPedidos=0;
+            try{
+                /*if((linea=archivoCiudad.readLine()) != null){
+                    String codigoPaquete=linea.substring(0, 9);
+                    String fechaLlegadaPaquete=linea.substring(15,17)+"/"+linea.substring(13,15)+"/"+linea.substring(9,13);
+                    String horaLlegadaPaquete=linea.substring(17,22);
+                    String DestinoPaquete=linea.substring(22,26);
+                    ciudadActual.setLinea(1);
+                    ciudadActual.setUltimaFecha(fechaLlegadaPaquete);
+                    ciudadActual.setUltimaHora(horaLlegadaPaquete);
+                    ciudadActual.setUltimoDestino(DestinoPaquete);                     
+                }
+                archivoCiudad.close();    */
+                
+                while((linea=archivoCiudad.readLine()) != null){
+                    if(numeroPedidos==0){
+                        String codigoPaquete=linea.substring(0, 9);
+                        String fechaLlegadaPaquete=linea.substring(15,17)+"/"+linea.substring(13,15)+"/"+linea.substring(9,13);
+                        String horaLlegadaPaquete=linea.substring(17,22);
+                        String DestinoPaquete=linea.substring(22,26);
+                        ciudadActual.setLinea(1);
+                        ciudadActual.setUltimaFecha(fechaLlegadaPaquete);
+                        ciudadActual.setUltimaHora(horaLlegadaPaquete);
+                        ciudadActual.setUltimoDestino(DestinoPaquete);  
+                    }
+                    else temporalArchivo[numeroPedidos]=linea;
+                    numeroPedidos++;
+                }
+                temporalArchivo[numeroPedidos]=null;
+                archivoCiudad.close();
+                ciudadActual.setArchivoPedidos(temporalArchivo);
+            }catch (IOException e)
+            {
+                System.err.println(e.toString());
+            }
+            finally
+            {
+                try
+                {
+                    archivoCiudad.close();
+                }
+                catch (IOException ex)
+                {
+                    System.err.println(ex.toString());
+                }
+            }
+            
+        }
+        //siguienteEnvio();
     }
     
 }
