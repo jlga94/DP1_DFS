@@ -1,0 +1,9 @@
+*.properties
+*.class
+*.class
+nbproject/private/private.xml
+*.xml
+nbproject/build-impl.xml
+nbproject/project.properties
+dist/DFS.jar
+manifest.mf
