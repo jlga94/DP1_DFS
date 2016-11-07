@@ -2,6 +2,14 @@
 <project-private xmlns="http://www.netbeans.org/ns/project-private/1">
     <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
-        <group/>
+        <group>
+            <file>file:/C:/Users/Sebastián/Desktop/DP1_DFS/src/dfs/Ciudad.java</file>
+            <file>file:/C:/Users/Sebastián/Desktop/DP1_DFS/src/dfs/DFS.java</file>
+            <file>file:/C:/Users/Sebastián/Desktop/DP1_DFS/src/dfs/TrendLine.java</file>
+            <file>file:/C:/Users/Sebastián/Desktop/DP1_DFS/src/dfs/GestorCiudades.java</file>
+            <file>file:/C:/Users/Sebastián/Desktop/DP1_DFS/src/dfs/Ruta.java</file>
+            <file>file:/C:/Users/Sebastián/Desktop/DP1_DFS/src/dfs/OLSTrendLine.java</file>
+            <file>file:/C:/Users/Sebastián/Desktop/DP1_DFS/src/dfs/ExpTrendLine.java</file>
+        </group>
     </open-files>
 </project-private>

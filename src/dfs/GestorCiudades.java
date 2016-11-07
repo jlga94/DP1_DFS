@@ -5,6 +5,8 @@
  */
 package dfs;
 
+
+
 import java.util.TreeMap;
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
@@ -218,23 +220,36 @@ public class GestorCiudades {
         }
     }
     
+    public double[] inicializarEstructura(int cantidadDias){
+        double temporal[] =new double[cantidadDias];
+        for(int i=0;i<cantidadDias;++i)temporal[i]=0;
+        return temporal;
+    }
+    
     public void asignarPedidos()throws FileNotFoundException{
 
         int numPedido=1;
         Ciudad siguienteCiudad;
         String fechaActual="";
-        while((siguienteCiudad=siguienteEnvio()) != null){            
-            
+        int indiceDia=-1;
+        double historicoPedidosDia[]=inicializarEstructura(3);//se expande a años? Cantidad fija?
+        double indiceDias[]=inicializarEstructura(3);
+        while((siguienteCiudad=siguienteEnvio()) != null){
             if(!siguienteCiudad.getUltimaFecha().equals(fechaActual)){//Se limpia el dia si ha cambiado de todos los almacenes
                 limpiarCapacidad_Almacenes_Rutas(fechaActual);
                 fechaActual=siguienteCiudad.getUltimaFecha();
+                indiceDia++;
+                indiceDias[indiceDia]=indiceDia;
             }
             DFS(siguienteCiudad.getCodigo(),siguienteCiudad.getUltimoDestino(),numPedido,siguienteCiudad.getUltimaHora(),1,siguienteCiudad.getUltimaFecha());
-            
+            historicoPedidosDia[indiceDia]++;
             siguienteCiudad.avanzarBuffer();
             
             numPedido++;
         }
+        TrendLine t = new ExpTrendLine();
+        t.setValues(historicoPedidosDia , indiceDias);
+        System.out.println(t.predict(4));
         System.out.println("Tiempo Total por paquetes: "+this.TiempoEntregaPaquetes);
         
     }
@@ -299,7 +314,7 @@ public class GestorCiudades {
         int cantidadAnexos=RutasAnexadasO.size();
         int cantAnexosRevisados=0;
         int encontroAlMenosUno=0; 
-        int porcCantAnexos=cantidadAnexos/4;//PORCENTAJE DE LAS RUTAS QUE SE ESTÁN EVALUANDO
+        int porcCantAnexos=cantidadAnexos;//PORCENTAJE DE LAS RUTAS QUE SE ESTÁN EVALUANDO
         
         //obtenemos el dia de la semana a examinar para el origen del pedido
         Calendar c=Calendar.getInstance();
@@ -343,7 +358,7 @@ public class GestorCiudades {
             }
         }
         if(mejorRuta.getTiempoRuta()==1000)
-            System.out.println("Numero de Pedido: "+numPedido+" No se encontró ruta");
+            System.out.println("Numero de Pedido: "+numPedido+" No se encontró ruta"+codCiudadO+"-"+ codCiudadF);
             //APLICAR RERUTEO
         
         else{
@@ -710,5 +725,7 @@ public class GestorCiudades {
         }
         //siguienteEnvio();
     }
+    
+    
     
 }
