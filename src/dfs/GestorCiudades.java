@@ -28,7 +28,7 @@ public class GestorCiudades {
     private int maxCapacidadesVuelos=500000;
     private int maxTiempoContinental=24;
     private int maxTiempoIntercontinental=48;
-    private int porcentajeEvaluacion=4;
+    private int porcentajeEvaluacion=1;
     private int estadoRutaFactible=0;
     private int estadoRutaXTiempo=1;
     private int estadoRutaXCapacidadAlmacen=2;
@@ -132,8 +132,19 @@ public class GestorCiudades {
             Map.Entry me = (Map.Entry)i.next();
             Ciudad ciudadActual=(Ciudad)me.getValue();
             ciudadActual.instanciarCantidadIdasRutasAnexas();
-            
-        }        
+            /*
+            Set set2 = ciudades.entrySet();
+            Iterator i2 = set2.iterator();
+            while(i2.hasNext()) {
+                Map.Entry me2 = (Map.Entry)i.next();
+                Ciudad ciudadBuscada=(Ciudad)me2.getValue();
+                System.out.println("CIUDAD INICIO: "+ciudadActual.getCodigo() + " -CIUDAD FIN: "+ciudadBuscada.getCodigo());
+                if(ciudadActual.getCodigo().equals(ciudadBuscada.getCodigo()))
+                    continue;
+                ciudadActual.instanciarCantVisitadasrutasXDestino(ciudadBuscada.getCodigo());
+            }
+            */
+        }
     }
     
     public GestorCiudades(String archVuelos,String archAeropuertos,String archHusos) throws FileNotFoundException{
@@ -191,6 +202,9 @@ public class GestorCiudades {
             }
         }          
     }
+    
+    
+    
     private void limpiarCapacidad_Almacenes_Rutas(String fechaActual){
 
         if(fechaActual.equals(""))return;
@@ -301,8 +315,13 @@ public class GestorCiudades {
         RutaEscogida mejorRuta= new RutaEscogida(1000);//Numero alto para que sea reemplazado en le primera iteración
         int indiceRutaEscogida=-1;
         
-        ArrayList<Ruta> RutasAnexadasO=ciudadO.getRutasAnexas(); //CAMBIAR A LAS RUTAS QUE PUEDAN SER FACTIBLES
-        int cantidadAnexos=RutasAnexadasO.size();
+        ArrayList<Ruta> RutasAnexadasO=ciudadO.getRutasAnexas(); //CAMBIAR A LAS RUTAS QUE PUEDAN SER FACTIBLES        
+        //ArrayList<ConjRutas> listaRutasFactibles=(ArrayList<ConjRutas>) ciudadO.rutasXDestino.get(codCiudadF);
+        
+               
+        int cantidadAnexos=RutasAnexadasO.size();        
+        //int cantidadAnexos=listaRutasFactibles.size();
+             
         int cantAnexosRevisados=0;
         int encontroAlMenosUno=0; 
         int porcCantAnexos=cantidadAnexos/porcentajeEvaluacion;//PORCENTAJE DE LAS RUTAS QUE SE ESTÁN EVALUANDO
@@ -321,8 +340,9 @@ public class GestorCiudades {
         int cantidadNFCapacidadVuelo=0;
         
         
-        ArrayList<Integer> listaRutasAEscoger=crearListaAEscoger(ciudadO);
-        
+        ArrayList<Integer> listaRutasAEscoger=crearListaAEscogerXCiudad(ciudadO);
+        //ArrayList<Integer> listaRutasAEscoger=crearListaAEscogerXCiudad(ciudadO,codCiudadF);
+                
         while(cantAnexosRevisados<cantidadAnexos && encontroAlMenosUno==0){
             int cantPorcAnexosRevisados=porcCantAnexos;
             while(cantPorcAnexosRevisados>0 && cantAnexosRevisados<cantidadAnexos){
@@ -332,12 +352,15 @@ public class GestorCiudades {
                 removerElementos_Lista(indRutaARevisar,listaRutasAEscoger);// Se remueve los elementos repetidos
                 
                 Ruta rutaActual=RutasAnexadasO.get(indRutaARevisar);
+                //ConjRutas rutaEvaluada=listaRutasFactibles.get(indRutaARevisar);
 
                 RutaEscogida resultadoRutaInicial = new RutaEscogida(0);
 
                 String[] superTemporal=horaPedido.split(":");
                 
-                RutaEscogida resultadoRuta=recursiveSearch(rutaActual,resultadoRutaInicial,maxTiempoVuelo,codCiudadF,Integer.parseInt(superTemporal[0]),fechaPedido,cantPaquetes,dayweek);
+                RutaEscogida resultadoRuta=recursiveSearch(rutaActual,resultadoRutaInicial,maxTiempoVuelo,codCiudadF,Integer.parseInt(superTemporal[0]),fechaPedido,cantPaquetes,dayweek);                
+                //RutaEscogida resultadoRuta=evaluarRuta(rutaEvaluada,resultadoRutaInicial,maxTiempoVuelo,codCiudadF,Integer.parseInt(superTemporal[0]),fechaPedido,cantPaquetes,dayweek);
+                
                 
                 if(resultadoRuta.getEstadoRuta()==this.estadoRutaFactible){
                     //AQUI SE EVALUA LO QUE SE TENGA QUE EVALUAR PARA ESCOGER EL MEJOR
@@ -367,11 +390,75 @@ public class GestorCiudades {
         else{
             System.out.println("Numero de Pedido: "+numPedido+ " Mejor Ruta: "+mejorRuta.imprimirRecorrido()+" Mejor Tiempo: "+mejorRuta.getTiempoRuta());
             ciudadO.incrementarRutaEscogida(indiceRutaEscogida);
-            //agregarPaquetes_Ciudades(mejorRuta,cantPaquetes);
+            //ciudadO.incrementarRutaEscogidaXCiudad(codCiudadF, indiceRutaEscogida);
+            
             actualizarCapacidadAlmacen_Rutas(mejorRuta, cantPaquetes,horaPedido,fechaPedido,codCiudadF,dayweek);
         }
     }
 
+    private RutaEscogida evaluarRuta(ConjRutas rutaEvaluada,RutaEscogida resultadoRuta,int maxTiempoVuelo,String ciudadFinal,int horaPartida, String fechaPedido,int cantidadPaquetes, int dayweek){
+        
+        for(Ruta rutaActual: rutaEvaluada.vuelos){
+            if(dayweek>6)dayweek-=7;
+            int tiempoTraslado=calcularTiempoTraslado(rutaActual);
+            int tiempoEspera=calcularTiempoEspera(rutaActual, horaPartida);
+            //buscamos las ciudades para poder obtener las proyecciones de sus almacenes
+            Ciudad ciudadDestino=ciudades.get(rutaActual.getCiudadOrigen());
+            Ciudad ciudadOrigen=ciudades.get(rutaActual.getCiudadFin());
+            TreeMap almacenOrigen = (TreeMap) ciudadOrigen.proyeccionAlmacen.get(dayweek);        
+        
+            if(hayCapacidad(ciudadOrigen,dayweek, horaPartida, tiempoEspera,cantidadPaquetes)==0){
+                resultadoRuta.setEstadoRuta(this.estadoRutaXCapacidadAlmacen);
+                return resultadoRuta;
+            }
+            
+            if(rutaActual.cantidadPaquetesXDia[dayweek]>this.maxCapacidadesVuelos){//Si se sobrepasa la capacidad del Vuelo en ese dia 
+                resultadoRuta.setEstadoRuta(this.estadoRutaXCapacidadVuelo);
+                return resultadoRuta;
+            }
+            //int tiempoTraslado_Espera=calcularTiempo(rutaActual,horaPartida);
+            int tiempoTotalActualizado=resultadoRuta.getTiempoRuta()+tiempoTraslado+tiempoEspera;
+
+            int horaLLegada=tiempoTotalActualizado;
+            if(horaLLegada>23){
+                dayweek+=(horaLLegada/24);
+                horaLLegada%=24;
+            }
+
+            if(dayweek>6)dayweek-=7;
+
+            TreeMap almacenDestino = (TreeMap) ciudadDestino.proyeccionAlmacen.get(dayweek);
+            //se revisa si la llegada al aeropuerto de destino desbordaria el almacen
+            if((int)(almacenDestino.get(horaLLegada*100))+cantidadPaquetes>maxCapacidadCiudades){
+                resultadoRuta.setEstadoRuta(this.estadoRutaXCapacidadAlmacen);
+                return resultadoRuta;
+            }
+
+            if(tiempoTotalActualizado>maxTiempoVuelo){ // FALTA REVISAR LO DE LAS CAPACIDADES DE CIUDADES
+                resultadoRuta.setEstadoRuta(this.estadoRutaXTiempo);
+                return resultadoRuta;          
+            }
+            else{
+                if(rutaActual.getCiudadFin().equals(ciudadFinal)){                             
+                    resultadoRuta.agregarRuta(rutaActual);
+                    resultadoRuta.agregarTiempoEspera(tiempoEspera);
+                    resultadoRuta.agregarTiempoTraslado(tiempoTraslado);
+                    resultadoRuta.actualizarTiempoRuta(tiempoTraslado, tiempoEspera);
+                    resultadoRuta.capacidades+=((int)(almacenDestino.get(horaLLegada*100))+cantidadPaquetes+(int)almacenOrigen.get(horaPartida*100)+cantidadPaquetes)/(2*maxCapacidadCiudades);
+                    resultadoRuta.setEstadoRuta(this.estadoRutaFactible);
+                }
+
+                if(tiempoTotalActualizado==maxTiempoVuelo){//Si ya llego al tope, no vale la pena seguir buscando caminos
+                    resultadoRuta.setEstadoRuta(this.estadoRutaXTiempo);
+                    return resultadoRuta;  
+                }
+            }            
+        }
+        
+        resultadoRuta.setEstadoRuta(this.estadoRutaFactible);
+        return resultadoRuta;
+    }
+    
     private RutaEscogida recursiveSearch(Ruta rutaActual,RutaEscogida resultadoRuta,int maxTiempoVuelo,String ciudadFinal,int horaPartida, String fechaPedido,int cantidadPaquetes, int dayweek){//ACLARAR horaPartida?
         
         if(dayweek>6)dayweek-=7;
@@ -436,13 +523,11 @@ public class GestorCiudades {
             }
             
             if(tiempoTotalActualizado==maxTiempoVuelo){//Si ya llego al tope, no vale la pena seguir buscando caminos
-                RutaEscogida updateResultadoRuta= new RutaEscogida(resultadoRuta);
-                updateResultadoRuta.setEstadoRuta(this.estadoRutaXTiempo);
-                return updateResultadoRuta;  
+                resultadoRuta.setEstadoRuta(this.estadoRutaXTiempo);
+                return resultadoRuta;  
             }
         }
-        
-        
+          
         Ciudad ciudadNuevaPartida=ciudades.get(rutaActual.getCiudadFin());
         String[] hhmm=rutaActual.getHoraFin().trim().split(":");        
         horaPartida=Integer.parseInt(hhmm[0]);
@@ -483,10 +568,6 @@ public class GestorCiudades {
             return mejorRuta;
         }
     }
-    
-    
-    
-    
     
     private int calcularTiempoTraslado (Ruta rutaActual){
         int tiempoTraslado;       
@@ -623,7 +704,7 @@ public class GestorCiudades {
         ciudades.get("SKBO").print();
     }
     
-    private ArrayList<Integer> crearListaAEscoger(Ciudad ciudadO){        
+    private ArrayList<Integer> crearListaAEscogerXCiudad(Ciudad ciudadO){        
         ArrayList<Integer> listaAEscoger = new ArrayList<Integer>();
         
         ArrayList<Integer> cantVisitadasRutas = ciudadO.getCantVisitadasRutasAnexas();
@@ -639,6 +720,24 @@ public class GestorCiudades {
         
         return listaAEscoger;
     }
+    
+    private ArrayList<Integer> crearListaAEscogerXCiudad(Ciudad ciudadO,String codCiudadFin){        
+        ArrayList<Integer> listaAEscoger = new ArrayList<Integer>();
+        
+        ArrayList<Integer> cantVisitadasRutas = ciudadO.getCantVisitadasRutasAnexas();
+        
+        int indCantVisitadasRutas=0;
+        for(Integer cantVisita : cantVisitadasRutas){
+            
+            while(cantVisita-->0){
+                listaAEscoger.add(indCantVisitadasRutas);
+            }
+            indCantVisitadasRutas++;
+        }
+        
+        return listaAEscoger;
+    }
+    
     
     private void removerElementos_Lista(Integer ind, ArrayList<Integer> lst){
         ArrayList<Integer> rmv= new ArrayList<Integer>();
