@@ -5,10 +5,11 @@
  */
 package dfs;
 
-
-import org.apache.commons.math3.linear.*;
-import org.apache.commons.math3.stat.regression.*;
 import java.util.Arrays;
+import org.apache.commons.math.linear.MatrixUtils;
+import org.apache.commons.math.linear.RealMatrix;
+import org.apache.commons.math.stat.regression.OLSMultipleLinearRegression;
+
 
 
 /**

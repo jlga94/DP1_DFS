@@ -24,7 +24,7 @@ public class DFS {
         gestor.lineaInicial();
         //gestor.asignarPedidos("Extras/_pedidos_N.txt");
         gestor.asignarPedidos();
-        gestor.imprimirCiudades();
+        //gestor.imprimirCiudades();
     }
     
 }

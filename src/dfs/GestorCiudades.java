@@ -226,6 +226,30 @@ public class GestorCiudades {
         return temporal;
     }
     
+    private void pedidosSinteticos(int cantidadProyectada,String fechaActual){
+        Set set = ciudades.entrySet();
+        Iterator i = set.iterator();
+        String[] codCiudades=new String[40];
+        int numCiudad=0;
+        while(i.hasNext()) {
+            Map.Entry me = (Map.Entry)i.next();
+            Ciudad ciudadActual=(Ciudad)me.getValue();
+            
+            codCiudades[numCiudad++]=ciudadActual.getCodigo();
+        }
+        int hora=0;
+        int pedidosPorHora=cantidadProyectada/24;
+        for(int j=0;j<cantidadProyectada;++j){
+            String ciudadOrigen=codCiudades[rnd.nextInt(codCiudades.length)];
+            System.out.println(ciudadOrigen);
+            String ciudadDestino=codCiudades[rnd.nextInt(codCiudades.length)];
+            if(ciudadDestino.equalsIgnoreCase(ciudadOrigen))ciudadDestino=codCiudades[rnd.nextInt(codCiudades.length)];
+            System.out.println(ciudadDestino);
+            if(j>pedidosPorHora*(hora+2))hora++;
+            System.out.println(hora+":"+rnd.nextInt(60));
+        }
+    }
+    
     public void asignarPedidos()throws FileNotFoundException{
 
         int numPedido=1;
@@ -238,10 +262,11 @@ public class GestorCiudades {
             if(!siguienteCiudad.getUltimaFecha().equals(fechaActual)){//Se limpia el dia si ha cambiado de todos los almacenes
                 limpiarCapacidad_Almacenes_Rutas(fechaActual);
                 fechaActual=siguienteCiudad.getUltimaFecha();
+                System.out.println(fechaActual);
                 indiceDia++;
                 indiceDias[indiceDia]=indiceDia;
             }
-            DFS(siguienteCiudad.getCodigo(),siguienteCiudad.getUltimoDestino(),numPedido,siguienteCiudad.getUltimaHora(),1,siguienteCiudad.getUltimaFecha());
+            //DFS(siguienteCiudad.getCodigo(),siguienteCiudad.getUltimoDestino(),numPedido,siguienteCiudad.getUltimaHora(),1,siguienteCiudad.getUltimaFecha());
             historicoPedidosDia[indiceDia]++;
             siguienteCiudad.avanzarBuffer();
             
@@ -249,7 +274,8 @@ public class GestorCiudades {
         }
         TrendLine t = new ExpTrendLine();
         t.setValues(historicoPedidosDia , indiceDias);
-        System.out.println(t.predict(4));
+        for(int i=0;i<3;++i)System.out.println(historicoPedidosDia[i]);
+        pedidosSinteticos((int)t.predict(4),fechaActual);
         System.out.println("Tiempo Total por paquetes: "+this.TiempoEntregaPaquetes);
         
     }
