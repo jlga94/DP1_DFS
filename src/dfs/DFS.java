@@ -20,8 +20,10 @@ public class DFS {
     public static void main(String[] args) throws FileNotFoundException {
         
         
-        GestorCiudades gestor= new GestorCiudades("Extras/_plan_vuelo.txt", "Extras/_aeropuertos.OACI.txt", "Extras/_husos_horarios.txt");
-        gestor.asignarPedidos("Extras/_pedidos_N.txt");
+        GestorCiudades gestor= new GestorCiudades("Extras/plan_vuelo.txt", "Extras/_aeropuertos.OACI.txt", "Extras/_husos_horarios.txt");
+        gestor.lineaInicial();
+        //gestor.asignarPedidos("Extras/_pedidos_N.txt");
+        gestor.asignarPedidos();
         gestor.imprimirCiudades();
     }
     

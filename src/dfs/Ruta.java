@@ -17,6 +17,12 @@ public class Ruta {
     private String ciudadFin;
     private String horaOrigen;
     private String horaFin;
+    public int horaO;
+    public int horaF;
+    private int tiempo;
+    public int[] cantidadPaquetesXDia = new int[7]; //Cantidad de paquetes que hay en el dia, será tratado como un arreglo circular
+    
+    
 
     public Ruta(String ciudadOrigen,String ciudadFin,String horaOrigen,String horaFin){
         this.ciudadFin=ciudadFin;
@@ -80,4 +86,27 @@ public class Ruta {
     public void setHoraFin(String horaFin) {
         this.horaFin = horaFin;
     }
+
+    /**
+     * @return the tiempo
+     */
+    public int getTiempo() {
+        return tiempo;
+    }
+
+    /**
+     * @param tiempo the tiempo to set
+     */
+    public void setTiempo(int tiempo) {
+        this.tiempo = tiempo;
+    }
+    
+    public int getIndCapacidad(int indice){
+        return this.cantidadPaquetesXDia[indice];
+    }
+    
+    public void setIndCapacidad(int indice,int capacidadIndice){
+        this.cantidadPaquetesXDia[indice]=capacidadIndice;
+    }
+    
 }
