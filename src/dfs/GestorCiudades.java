@@ -243,7 +243,7 @@ public class GestorCiudades {
             String ciudadOrigen=codCiudades[rnd.nextInt(codCiudades.length)];
             System.out.println(ciudadOrigen);
             String ciudadDestino=codCiudades[rnd.nextInt(codCiudades.length)];
-            if(ciudadDestino.equalsIgnoreCase(ciudadOrigen))ciudadDestino=codCiudades[rnd.nextInt(codCiudades.length)];
+            while(ciudadDestino.equals(ciudadOrigen))ciudadDestino=codCiudades[rnd.nextInt(codCiudades.length)];
             System.out.println(ciudadDestino);
             if(j>pedidosPorHora*(hora+2))hora++;
             System.out.println(hora+":"+rnd.nextInt(60));
