@@ -12,6 +12,8 @@ import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.UnsupportedEncodingException;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -225,8 +227,8 @@ public class GestorCiudades {
         for(int i=0;i<cantidadDias;++i)temporal[i]=0;
         return temporal;
     }
-    
-    private void pedidosSinteticos(int cantidadProyectada,String fechaActual){
+    //posibilidad de mejora, pasar como parametro todos las ciudades
+    private void pedidosSinteticos(int cantidadProyectada,String fechaActual,String CodOrigen) throws FileNotFoundException, UnsupportedEncodingException{
         Set set = ciudades.entrySet();
         Iterator i = set.iterator();
         String[] codCiudades=new String[40];
@@ -238,25 +240,43 @@ public class GestorCiudades {
             codCiudades[numCiudad++]=ciudadActual.getCodigo();
         }
         int hora=0;
-        int pedidosPorHora=cantidadProyectada/24;
-        for(int j=0;j<cantidadProyectada;++j){
-            String ciudadOrigen=codCiudades[rnd.nextInt(codCiudades.length)];
-            System.out.println(ciudadOrigen);
-            String ciudadDestino=codCiudades[rnd.nextInt(codCiudades.length)];
-            while(ciudadDestino.equals(ciudadOrigen))ciudadDestino=codCiudades[rnd.nextInt(codCiudades.length)];
-            System.out.println(ciudadDestino);
-            if(j>pedidosPorHora*(hora+2))hora++;
-            System.out.println(hora+":"+rnd.nextInt(60));
+        int pedidosPorHora=(int)Math.ceil(cantidadProyectada/24.0);
+        try (PrintWriter writer = new PrintWriter(CodOrigen+ ".txt", "UTF-8")) {
+            for(int j=0;j<cantidadProyectada;++j){
+                //String ciudadOrigen=codCiudades[rnd.nextInt(codCiudades.length)];
+                //System.out.println(ciudadOrigen);
+                String ciudadDestino=codCiudades[rnd.nextInt(codCiudades.length)];
+                while(ciudadDestino.equals(CodOrigen))ciudadDestino=codCiudades[rnd.nextInt(codCiudades.length)];
+                //System.out.println(ciudadDestino);
+                if(j>pedidosPorHora*(hora+1))hora++;
+                //System.out.println(hora+":"+rnd.nextInt(60));
+
+                
+                    writer.println(CodOrigen+"-"+ciudadDestino+" "+hora+":"+rnd.nextInt(60));
+            }
         }
     }
     
-    public void asignarPedidos()throws FileNotFoundException{
+    public void asignarPedidos()throws FileNotFoundException, UnsupportedEncodingException{
 
         int numPedido=1;
         Ciudad siguienteCiudad;
         String fechaActual="";
         int indiceDia=-1;
-        double historicoPedidosDia[]=inicializarEstructura(3);//se expande a años? Cantidad fija?
+        
+        TreeMap<String,double[]> historioPedidosCiudades =new TreeMap<String,double[]>();
+        
+        Set set = ciudades.entrySet();
+        Iterator i = set.iterator();
+        while(i.hasNext()) {
+            Map.Entry me = (Map.Entry)i.next();
+            Ciudad ciudadActual=(Ciudad)me.getValue();
+            
+            historioPedidosCiudades.put(ciudadActual.getCodigo(), inicializarEstructura(3));
+            
+        }
+        
+        //double historicoPedidosDia[]=inicializarEstructura(3);//se expande a años? Cantidad fija?
         double indiceDias[]=inicializarEstructura(3);
         while((siguienteCiudad=siguienteEnvio()) != null){
             if(!siguienteCiudad.getUltimaFecha().equals(fechaActual)){//Se limpia el dia si ha cambiado de todos los almacenes
@@ -267,15 +287,23 @@ public class GestorCiudades {
                 indiceDias[indiceDia]=indiceDia;
             }
             //DFS(siguienteCiudad.getCodigo(),siguienteCiudad.getUltimoDestino(),numPedido,siguienteCiudad.getUltimaHora(),1,siguienteCiudad.getUltimaFecha());
-            historicoPedidosDia[indiceDia]++;
+            ((double[])historioPedidosCiudades.get(siguienteCiudad.getCodigo()))[indiceDia]++;
+            
             siguienteCiudad.avanzarBuffer();
             
             numPedido++;
         }
-        TrendLine t = new ExpTrendLine();
-        t.setValues(historicoPedidosDia , indiceDias);
-        for(int i=0;i<3;++i)System.out.println(historicoPedidosDia[i]);
-        pedidosSinteticos((int)t.predict(4),fechaActual);
+        
+        for(String llave : historioPedidosCiudades.keySet()){
+            System.out.println(llave);
+            TrendLine t = new ExpTrendLine();
+            t.setValues(((double[])historioPedidosCiudades.get(llave)) , indiceDias);
+            for(int j=0;j<3;++j)System.out.println( ((double[])historioPedidosCiudades.get(llave))[j]);
+            System.out.println(t.predict(4));
+            pedidosSinteticos((int)t.predict(4),fechaActual,llave);
+        }
+        
+        
         System.out.println("Tiempo Total por paquetes: "+this.TiempoEntregaPaquetes);
         
     }

@@ -306,53 +306,7 @@ public class Ciudad {
             this.setUltimoDestino(DestinoPaquete);                     
         }
         else this.setUltimaHora(null);
-        /*BufferedReader archivoCiudad= new BufferedReader(new FileReader("Extras/_archivos_1dia/1arch_"+codigo+".txt"));
-        String linea;
-        try{
-            for(int i=0;i<this.linea;++i) linea=archivoCiudad.readLine();
-        }catch (IOException e)
-        {
-            System.err.println(e.toString());
-        }
-        finally
-        {
-            try
-            {
-                archivoCiudad.close();
-            }
-            catch (IOException ex)
-            {
-                System.err.println(ex.toString());
-            }
-        }
-        try{
-            if((linea=archivoCiudad.readLine()) != null){
-                String codigoPaquete=linea.substring(0, 9);
-                String fechaLlegadaPaquete=linea.substring(15,17)+"/"+linea.substring(13,15)+"/"+linea.substring(9,13);
-                String horaLlegadaPaquete=linea.substring(17,22);
-                String DestinoPaquete=linea.substring(22,26);
-                this.setLinea(this.linea+1);
-                this.setUltimaFecha(fechaLlegadaPaquete);
-                this.setUltimaHora(horaLlegadaPaquete);
-                this.setUltimoDestino(DestinoPaquete);                     
-            }
-            else this.setUltimaHora(null);
-            archivoCiudad.close();      
-        }catch (IOException e)
-        {
-            System.err.println(e.toString());
-        }
-        finally
-        {
-            try
-            {
-                archivoCiudad.close();
-            }
-            catch (IOException ex)
-            {
-                System.err.println(ex.toString());
-            }
-        } */
+        
     }
 
     /**
