@@ -14,7 +14,7 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
-import javafx.util.Pair;
+
 
 /**
  *
@@ -29,13 +29,13 @@ public class Ciudad {
     private int huso_horario;
     private int cantPaquetes;
     public ArrayList<Ruta> rutasAnexas=new ArrayList<Ruta>();
-    public TreeMap proyeccionAlmacen = new TreeMap();
+    public TreeMap<Integer, TreeMap<Integer,Integer>> proyeccionAlmacen = new TreeMap<Integer, TreeMap<Integer,Integer>>();
     private ArrayList<Integer> cantVisitadasRutasAnexas=new ArrayList<Integer>();
     public HashMap<String,ArrayList<ConjRutas>> rutasXDestino = new HashMap<>(); // llave es el codigo de la ciudad destino, valor es las rutasXDestino posibles
     public HashMap<String,ArrayList<Integer>> CantVisitadasrutasXDestino = new HashMap<>();
     
     
-    private BufferedReader brAeropuertos;
+    //private BufferedReader brAeropuertos;
     private String ultimaHora;
     private String ultimaFecha;
     private String ultimoDestino;
@@ -50,14 +50,18 @@ public class Ciudad {
         this.Continente=continente;
         this.cantPaquetes=0;
         for(int i=0;i<7;i++){
-            proyeccionAlmacen.put(i, new TreeMap());
-            TreeMap temp=(TreeMap)proyeccionAlmacen.get(i);
+            proyeccionAlmacen.put(i, new TreeMap<Integer,Integer>());
+            TreeMap<Integer,Integer> temp=(TreeMap<Integer,Integer>)proyeccionAlmacen.get(i);
             for(int j=0;j<24;++j){
                 temp.put(j*100, 0);
                 temp.put(j*100+1, 0);
             }
         }
-        brAeropuertos = new BufferedReader(new FileReader("Extras/_archivos_1dia/1arch_"+codigo+".txt"));
+        //brAeropuertos = new BufferedReader(new FileReader("Extras/_archivos_1dia/1arch_"+codigo+".txt"));
+    }
+
+    Ciudad() {
+
     }
     
     /**
@@ -380,15 +384,15 @@ public class Ciudad {
     /**
      * @return the brAeropuertos
      */
-    public BufferedReader getBrAeropuertos() {
-        return brAeropuertos;
-    }
+    //public BufferedReader getBrAeropuertos() {
+    //    return brAeropuertos;
+    //}
 
     /**
      * @param brAeropuertos the brAeropuertos to set
      */
-    public void setBrAeropuertos(BufferedReader brAeropuertos) {
-        this.brAeropuertos = brAeropuertos;
-    }
+    //public void setBrAeropuertos(BufferedReader brAeropuertos) {
+    //    this.brAeropuertos = brAeropuertos;
+    //}
     
 }
