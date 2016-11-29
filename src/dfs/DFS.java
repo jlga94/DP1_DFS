@@ -34,7 +34,7 @@ public class DFS {
         
         
         GestorCiudades gestor= new GestorCiudades("Extras/plan_vuelo.txt", "Extras/_aeropuertos.OACI.txt", "Extras/_husos_horarios.txt");
-        gestor.lineaInicial();
+        //gestor.lineaInicial();
         /*Gson gson = new Gson();
         GestorCiudades temporal= new GestorCiudades();
         try (Reader reader = new FileReader("staff.json")) {
@@ -48,7 +48,7 @@ public class DFS {
             e.printStackTrace();
         }*/
         //gestor.lineaInicial();
-        gestor.asignarPedidos();        
+        //gestor.asignarPedidos();        
         /*Set set = gestor.getCiudades().entrySet();
         Iterator i = set.iterator();
         //FileWriter file=new FileWriter("archivo.txt");
@@ -138,13 +138,13 @@ public class DFS {
         //gestor.imprimirCiudades();
         
         
-        /*Gson gson = new Gson();
+        Gson gson = new Gson();
 
-        try (FileWriter writer = new FileWriter("staff.json")) {
+        try (FileWriter writer = new FileWriter("gestores.json")) {
             gson.toJson(gestor,writer);
         } catch(IOException e){
             e.printStackTrace();
-        }*/
+        }
         
         
         

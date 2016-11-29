@@ -28,10 +28,14 @@ public class ConjRutas {
         tiempo=tiemp;
     }       
     public void print(){
-        //for(int i=0;i<vuelos.size();i++){
-            //System.out.print(vuelos.get(i).getAeroOrig().getCodAeropuerto()+"-"+
-              //              vuelos.get(i).getAeroFin().getCodAeropuerto()+"/");
-        //}
+        for(int i=0;i<vuelos.size();i++){
+            System.out.print(vuelos.get(i).getCiudadOrigen()+"-"+
+                            vuelos.get(i).getCiudadFin()+"//");
+        }
         System.out.println(" Tiempo: "+tiempo);
     }    
+    public void addRuta(Ruta vuelo,int tiemp){
+        vuelos.add(vuelo);
+        tiempo+=tiemp;
+    }
 }

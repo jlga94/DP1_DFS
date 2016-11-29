@@ -106,8 +106,22 @@ public class GestorCiudades {
                 Ruta newRuta=new Ruta(ciudadO,ciudadF,horaO,horaF);
                 newRuta.horaF=horaFin;
                 newRuta.horaO=horaPartida;
-                if(getCiudades().get(ciudadO).getContinente().equals(getCiudades().get(ciudadF).getContinente())) newRuta.setTiempo(12);
-                else newRuta.setTiempo(24);
+                
+                
+            int husoO=ciudades.get(ciudadO).getHuso_horario();
+            int husoF=ciudades.get(ciudadF).getHuso_horario();            
+            int hSalida=(horaPartida-husoO)%24;
+            int hLlegada=(horaFin-husoF)%24;
+            if(hSalida<0) hSalida+=24;
+            if(hLlegada<0) hLlegada+=24;
+            if(hLlegada<hSalida) hLlegada+=24;
+
+            int tiempoVuelo=hLlegada-hSalida;
+
+            newRuta.setTiempo(tiempoVuelo);
+            
+//                if(getCiudades().get(ciudadO).getContinente().equals(getCiudades().get(ciudadF).getContinente())) newRuta.setTiempo(12);
+//                else newRuta.setTiempo(24);
                 Ciudad ciudadOrigen=getCiudades().get(ciudadO);
                 ciudadOrigen.agregarRuta(newRuta);
             }
@@ -155,7 +169,10 @@ public class GestorCiudades {
         leerCiudades(archAeropuertos,archHusos);
         leerRutas(archVuelos);
         generarConjRutas();//generar todas las rutasXDestino posibles
-        instanciarVecesRecorridasCiudades();
+        ArrayList<ConjRutas> rutas=encuentraRutas(ciudades.get("SVMI"),"SCEL",24,0);
+        System.out.println(rutas.size());
+        for(int i=0;i<rutas.size();i++) rutas.get(i).print();    
+        //instanciarVecesRecorridasCiudades();
         
         //UTILIZAR ALGORITMO DE TODAS LAS CIUDADES A TODAS LAS CIUDADES
         
@@ -164,50 +181,62 @@ public class GestorCiudades {
     public void generarConjRutas(){
         int tEspera;
         int tiempoRuta;
-        for(Ciudad ciudad : getCiudades().values()) {
-            ArrayList<Ruta>vuelos = ciudad.rutasAnexas;
-            for(int i=0;i<vuelos.size();i++){
-                String destino=vuelos.get(i).getCiudadFin();
-                if(!ciudad.rutasXDestino.containsKey(destino)){ // si todavia no tiene ninguna ruta ese destino
-                    ArrayList<ConjRutas> rutas= new ArrayList<>();
-                    rutas.add(new ConjRutas(vuelos.get(i),vuelos.get(i).getTiempo()));
-                    ciudad.rutasXDestino.put(destino, rutas);                    
+        for(Ciudad ciudad : ciudades.values()) {
+            for(Ciudad ciudFin : ciudades.values()){
+                if(!ciudFin.getCodigo().equals(ciudad.getCodigo())){
+                    int tMax=48; //maximo de horas
+                    if(ciudFin.getContinente().equals(ciudad.getContinente())) tMax=24;
+                    ArrayList<ConjRutas> rutas=encuentraRutas(ciudad,ciudFin.getCodigo(),tMax,0);
+                    if(rutas.size()>0) ciudad.rutasXDestino.put(ciudFin.getCodigo(), rutas);
                 }
-                else{
-                    ArrayList<ConjRutas> rutas=ciudad.rutasXDestino.get(destino);
-                    rutas.add(new ConjRutas(vuelos.get(i),vuelos.get(i).getTiempo()));
-                    ciudad.rutasXDestino.put(destino,rutas);    
-                }
-                
-                // caso con Escala
-                String ciudInter=vuelos.get(i).getCiudadFin();
-                Ciudad ciudadIntermedia=getCiudades().get(ciudInter);
-                for(int j=0;j<ciudadIntermedia.rutasAnexas.size();j++){
-                    Ruta vuelo2=ciudadIntermedia.rutasAnexas.get(j);
-                    String destino2=vuelo2.getCiudadFin();
-                    if(ciudad.getContinente().equals(getCiudades().get(destino2).getContinente())) continue;
-                    tEspera=vuelo2.horaO-vuelos.get(i).horaF;
-                    if(tEspera<0)tEspera+=24;
-                    tiempoRuta=vuelos.get(i).getTiempo()+vuelo2.getTiempo()+tEspera;
-                    if(tiempoRuta>48) continue; // si se demora más de 48 horas, no tomar en cuenta
-                    if(!ciudad.rutasXDestino.containsKey(destino2)){ // si todavia no tiene ninguna ruta ese destino
-                        ArrayList<ConjRutas> rutas= new ArrayList<>();
-                        ConjRutas ruta=new ConjRutas(vuelos.get(i),vuelo2,tiempoRuta);
-                        rutas.add(ruta);
-                        ciudad.rutasXDestino.put(destino2, rutas);                    
-                    }
-                    else{
-                        ArrayList<ConjRutas> rutas=ciudad.rutasXDestino.get(destino2);
-                        ConjRutas ruta=new ConjRutas(vuelos.get(i),vuelo2,tiempoRuta);
-                        rutas.add(ruta);
-                        ciudad.rutasXDestino.put(destino2,rutas);    
-                    }
-                }
+
             }
-        }          
+        }         
     }
     
-    
+        public  ArrayList<ConjRutas> encuentraRutas(Ciudad ciudOrigen, String ciudFinal,int tiempoDisp,int niveles){
+        ArrayList<ConjRutas> rutas= new ArrayList<>();
+        if(tiempoDisp<=0 || niveles==3) return rutas; // si ya no hay más tiempo no seguir más
+        ArrayList<Ruta>vuelos = ciudOrigen.rutasAnexas;
+
+        for(int i=0;i<vuelos.size();i++){
+            //caso directo
+            Ruta vuelo=vuelos.get(i);
+            Ciudad ciudadFinVuelo=ciudades.get(vuelo.getCiudadFin());
+            if(vuelo.getCiudadFin().equals(ciudFinal)){ // si cumple el destino
+                if(vuelo.getTiempo()<=tiempoDisp) // si cumple la regla de negocio
+                    rutas.add(new ConjRutas(vuelo,vuelo.getTiempo()));
+            }
+            else{ //intento con escala
+                int nivelesManda=niveles+1;
+                ArrayList<ConjRutas> rutasEscala=encuentraRutas(ciudadFinVuelo,ciudFinal
+                        ,tiempoDisp-vuelo.getTiempo(),nivelesManda);// se obtiene las rutas desde la escala hasta el destino
+                
+                for(int j=0;j<rutasEscala.size();j++){ //verificar que se cumple el tiempo(considerando espera) x ruta
+                    ConjRutas ruta =rutasEscala.get(j);
+                    int tEspera;
+                    int tEsperaTotal=0;
+                    int tVueloTotal=vuelo.getTiempo();
+                    for(int h=0;h<ruta.vuelos.size();h++){
+                        Ruta vueloInt=ruta.vuelos.get(h);
+                        if(h==0) tEspera=vueloInt.horaO-vuelo.horaF; //para el primer vuelo
+                        else tEspera= vueloInt.horaO-ruta.vuelos.get(h-1).horaF;
+                        if(tEspera<0) tEspera+=24;
+                        tEsperaTotal+=tEspera;
+                        tVueloTotal+=vueloInt.getTiempo();
+                    }
+                    int tTotal=tVueloTotal+tEsperaTotal;
+                    if(tTotal<=tiempoDisp) {
+                        ruta.vuelos.add(0, vuelo); // agregamos el vuelo inicial(origen-escala)
+                        ruta.tiempo=tTotal;
+                        rutas.add(ruta);
+                    }                  
+                    
+                }
+            }
+        }      
+        return rutas;
+    }
     
     private void limpiarCapacidad_Almacenes_Rutas(String fechaActual){
 
