@@ -28,7 +28,7 @@ public class GestorCiudades {
     private int maxCapacidadesVuelos=200;
     private int maxTiempoContinental=24;
     private int maxTiempoIntercontinental=48;
-    private int porcentajeEvaluacion=1;
+    private int porcentajeEvaluacion=4;
     
     private int estadoRutaFactible=0;
     private int estadoRutaXTiempo=1;
@@ -196,7 +196,7 @@ public class GestorCiudades {
         }         
     }
     
-        public  ArrayList<ConjRutas> encuentraRutas(Ciudad ciudOrigen, String ciudFinal,int tiempoDisp,int niveles){
+    public  ArrayList<ConjRutas> encuentraRutas(Ciudad ciudOrigen, String ciudFinal,int tiempoDisp,int niveles){
         ArrayList<ConjRutas> rutas= new ArrayList<>();
         if(tiempoDisp<=0 || niveles==3) return rutas; // si ya no hay más tiempo no seguir más
         ArrayList<Ruta>vuelos = ciudOrigen.rutasAnexas;
@@ -447,7 +447,7 @@ public class GestorCiudades {
             }
         }
         else{
-            System.out.println(fechaPedido+" Numero de Pedido: "+numPedido+ " Mejor Ruta: "+mejorRuta.imprimirRecorrido()+" Mejor Tiempo: "+mejorRuta.getTiempoRuta());
+            System.out.println(fechaPedido+" Numero de Pedido: "+numPedido+ " Ciudad Origen: "+codCiudadO+" - Ciudad Fin: "+codCiudadF+" Mejor Ruta: "+mejorRuta.imprimirRecorrido()+" Mejor Tiempo: "+mejorRuta.getTiempoRuta());
             if(numPedido%5000==0)System.out.println("dfs.GestorCiudades.DFS()");
             //ciudadO.incrementarRutaEscogida(indiceRutaEscogida);
             ciudadO.incrementarRutaEscogidaXCiudad(codCiudadF, indiceRutaEscogida);
@@ -461,7 +461,7 @@ public class GestorCiudades {
             resultadoRuta.setEstadoRuta(this.estadoRutaXTiempo);
             return resultadoRuta;
         }
-            
+        //resultadoRuta = new RutaEscogida(0);
         for(Ruta rutaActual: rutaEvaluada.vuelos){
             if(dayweek>6)dayweek-=7;
             int tiempoTraslado=calcularTiempoTraslado(rutaActual);
@@ -498,24 +498,22 @@ public class GestorCiudades {
                 return resultadoRuta;
             }
 
-            if(tiempoTotalActualizado>maxTiempoVuelo){ // FALTA REVISAR LO DE LAS CAPACIDADES DE CIUDADES
+            if(tiempoTotalActualizado>maxTiempoVuelo){
                 resultadoRuta.setEstadoRuta(this.estadoRutaXTiempo);
                 return resultadoRuta;          
             }
             else{
-                if(rutaActual.getCiudadFin().equals(ciudadFinal)){                             
-                    resultadoRuta.agregarRuta(rutaActual);
-                    resultadoRuta.agregarTiempoEspera(tiempoEspera);
-                    resultadoRuta.agregarTiempoTraslado(tiempoTraslado);
-                    resultadoRuta.actualizarTiempoRuta(tiempoTraslado, tiempoEspera);
-                    resultadoRuta.capacidades+=((int)(almacenDestino.get(horaLLegada*100))+cantidadPaquetes+(int)almacenOrigen.get(horaPartida*100)+cantidadPaquetes)/(2*maxCapacidadCiudades);
-                    resultadoRuta.setEstadoRuta(this.estadoRutaFactible);
-                }
-
-                if(tiempoTotalActualizado==maxTiempoVuelo){//Si ya llego al tope, no vale la pena seguir buscando caminos
+                resultadoRuta.agregarRuta(rutaActual);
+                resultadoRuta.agregarTiempoEspera(tiempoEspera);
+                resultadoRuta.agregarTiempoTraslado(tiempoTraslado);
+                resultadoRuta.actualizarTiempoRuta(tiempoTraslado, tiempoEspera);
+                resultadoRuta.capacidades+=((int)(almacenDestino.get(horaLLegada*100))+cantidadPaquetes+(int)almacenOrigen.get(horaPartida*100)+cantidadPaquetes)/(2*maxCapacidadCiudades);
+                
+                if(!(rutaActual.getCiudadFin().equals(ciudadFinal)) && (tiempoTotalActualizado==maxTiempoVuelo)){//Si ya llego al tope, no vale la pena seguir buscando caminos                           
                     resultadoRuta.setEstadoRuta(this.estadoRutaXTiempo);
                     return resultadoRuta;  
                 }
+
             }            
         }
         
