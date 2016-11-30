@@ -389,7 +389,10 @@ public class GestorCiudades {
         int cantidadNFCapacidadVuelo=0;
         
         ArrayList<ConjRutas> listaRutasNFCapacidadAlmacen = new ArrayList<ConjRutas>();
+        ArrayList<RutaEscogida> listaRutasIncompletasNFCapacidadAlmacen = new ArrayList<RutaEscogida>();
         ArrayList<ConjRutas> listaRutasNFCapacidadVuelo = new ArrayList<ConjRutas>();
+        ArrayList<RutaEscogida> listaRutasIncompletasNFCapacidadVuelo = new ArrayList<RutaEscogida>();
+        
         
         //ArrayList<Integer> listaRutasAEscoger=crearListaAEscogerXCiudad(ciudadO);
         ArrayList<Integer> listaRutasAEscoger=crearListaAEscogerXCiudad(ciudadO,codCiudadF);
@@ -428,9 +431,11 @@ public class GestorCiudades {
                     else if(resultadoRuta.getEstadoRuta()==this.estadoRutaXCapacidadAlmacen){
                         cantidadNFCapacidadAlmacen++;
                         listaRutasNFCapacidadAlmacen.add(rutaEvaluada);
+                        listaRutasIncompletasNFCapacidadAlmacen.add(resultadoRuta);
                     }else if(resultadoRuta.getEstadoRuta()==this.estadoRutaXCapacidadVuelo){
                         cantidadNFCapacidadVuelo++;
                         listaRutasNFCapacidadVuelo.add(rutaEvaluada);
+                        listaRutasIncompletasNFCapacidadVuelo.add(resultadoRuta);
                     }
                         
                 }
