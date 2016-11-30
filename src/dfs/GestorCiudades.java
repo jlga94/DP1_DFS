@@ -29,6 +29,7 @@ public class GestorCiudades {
     private int maxTiempoContinental=24;
     private int maxTiempoIntercontinental=48;
     private int porcentajeEvaluacion=1;
+    
     private int estadoRutaFactible=0;
     private int estadoRutaXTiempo=1;
     private int estadoRutaXCapacidadAlmacen=2;
@@ -144,24 +145,25 @@ public class GestorCiudades {
     }
     
     private void instanciarVecesRecorridasCiudades(){
-        Set set = getCiudades().entrySet();
-        Iterator i = set.iterator();
-        while(i.hasNext()) {
-            Map.Entry me = (Map.Entry)i.next();
-            Ciudad ciudadActual=(Ciudad)me.getValue();
+        Set setKeys = ciudades.keySet();
+        ArrayList<String> listOfNames = new ArrayList(setKeys);
+
+        for(int i=0;i<listOfNames.size();i++) {
+
+            Ciudad ciudadActual=(Ciudad)ciudades.get(listOfNames.get(i));
             ciudadActual.instanciarCantidadIdasRutasAnexas();
-            /*
-            Set set2 = ciudades.entrySet();
-            Iterator i2 = set2.iterator();
-            while(i2.hasNext()) {
-                Map.Entry me2 = (Map.Entry)i.next();
-                Ciudad ciudadBuscada=(Ciudad)me2.getValue();
-                System.out.println("CIUDAD INICIO: "+ciudadActual.getCodigo() + " -CIUDAD FIN: "+ciudadBuscada.getCodigo());
+
+
+            for(int j=0;j<listOfNames.size();j++) {
+                Ciudad ciudadBuscada=(Ciudad)ciudades.get(listOfNames.get(j));
+                
                 if(ciudadActual.getCodigo().equals(ciudadBuscada.getCodigo()))
                     continue;
+                //System.out.println("CIUDAD INICIO: "+ciudadActual.getCodigo() + " -CIUDAD FIN: "+ciudadBuscada.getCodigo());
+                    
                 ciudadActual.instanciarCantVisitadasrutasXDestino(ciudadBuscada.getCodigo());
             }
-            */
+
         }
     }
     
@@ -169,10 +171,10 @@ public class GestorCiudades {
         leerCiudades(archAeropuertos,archHusos);
         leerRutas(archVuelos);
         generarConjRutas();//generar todas las rutasXDestino posibles
-        ArrayList<ConjRutas> rutas=encuentraRutas(ciudades.get("SVMI"),"SCEL",24,0);
-        System.out.println(rutas.size());
-        for(int i=0;i<rutas.size();i++) rutas.get(i).print();    
-        //instanciarVecesRecorridasCiudades();
+        //ArrayList<ConjRutas> rutas=encuentraRutas(ciudades.get("SVMI"),"SCEL",24,0);
+        //System.out.println(rutas.size());
+        //for(int i=0;i<rutas.size();i++) rutas.get(i).print();    
+        instanciarVecesRecorridasCiudades();
         
         //UTILIZAR ALGORITMO DE TODAS LAS CIUDADES A TODAS LAS CIUDADES
         
@@ -348,15 +350,29 @@ public class GestorCiudades {
         RutaEscogida mejorRuta= new RutaEscogida(1000);//Numero alto para que sea reemplazado en le primera iteración
         int indiceRutaEscogida=-1;
         
-        ArrayList<Ruta> RutasAnexadasO=ciudadO.getRutasAnexas(); //CAMBIAR A LAS RUTAS QUE PUEDAN SER FACTIBLES        
-        //ArrayList<ConjRutas> listaRutasFactibles=(ArrayList<ConjRutas>) ciudadO.rutasXDestino.get(codCiudadF);
+        //ArrayList<Ruta> RutasAnexadasO=ciudadO.getRutasAnexas(); //CAMBIAR A LAS RUTAS QUE PUEDAN SER FACTIBLES        
+        ArrayList<ConjRutas> listaRutasFactibles=(ArrayList<ConjRutas>) ciudadO.rutasXDestino.get(codCiudadF);
         
-               
-        int cantidadAnexos=RutasAnexadasO.size();        
-        //int cantidadAnexos=listaRutasFactibles.size();
-             
+        int cantidadAnexos;
+        if(listaRutasFactibles!=null){
+            //int cantidadAnexos=RutasAnexadasO.size();        
+            cantidadAnexos=listaRutasFactibles.size();
+        }else{
+            cantidadAnexos=0;
+            mejorRuta.setEstadoRuta(estadoRutaXTiempo);
+        }
         int cantAnexosRevisados=0;
         int encontroAlMenosUno=0; 
+        
+        if(cantidadAnexos%4==0)
+            porcentajeEvaluacion=4;
+        else if(cantidadAnexos%3==0)
+            porcentajeEvaluacion=3;
+        else if(cantidadAnexos%2==0)
+            porcentajeEvaluacion=2;
+        else
+            porcentajeEvaluacion=1;
+        
         int porcCantAnexos=cantidadAnexos/porcentajeEvaluacion;//PORCENTAJE DE LAS RUTAS QUE SE ESTÁN EVALUANDO
         
         //obtenemos el dia de la semana a examinar para el origen del pedido
@@ -372,9 +388,11 @@ public class GestorCiudades {
         int cantidadNFCapacidadAlmacen=0;
         int cantidadNFCapacidadVuelo=0;
         
+        ArrayList<ConjRutas> listaRutasNFCapacidadAlmacen = new ArrayList<ConjRutas>();
+        ArrayList<ConjRutas> listaRutasNFCapacidadVuelo = new ArrayList<ConjRutas>();
         
-        ArrayList<Integer> listaRutasAEscoger=crearListaAEscogerXCiudad(ciudadO);
-        //ArrayList<Integer> listaRutasAEscoger=crearListaAEscogerXCiudad(ciudadO,codCiudadF);
+        //ArrayList<Integer> listaRutasAEscoger=crearListaAEscogerXCiudad(ciudadO);
+        ArrayList<Integer> listaRutasAEscoger=crearListaAEscogerXCiudad(ciudadO,codCiudadF);
                 
         while(cantAnexosRevisados<cantidadAnexos && encontroAlMenosUno==0){
             int cantPorcAnexosRevisados=porcCantAnexos;
@@ -384,15 +402,15 @@ public class GestorCiudades {
                 int indRutaARevisar=listaRutasAEscoger.get(indRutaListaARevisar);
                 removerElementos_Lista(indRutaARevisar,listaRutasAEscoger);// Se remueve los elementos repetidos
                 
-                Ruta rutaActual=RutasAnexadasO.get(indRutaARevisar);
-                //ConjRutas rutaEvaluada=listaRutasFactibles.get(indRutaARevisar);
+                //Ruta rutaActual=RutasAnexadasO.get(indRutaARevisar);
+                ConjRutas rutaEvaluada=listaRutasFactibles.get(indRutaARevisar);
 
                 RutaEscogida resultadoRutaInicial = new RutaEscogida(0);
 
                 String[] superTemporal=horaPedido.split(":");
                 
-                RutaEscogida resultadoRuta=recursiveSearch(rutaActual,resultadoRutaInicial,maxTiempoVuelo,codCiudadF,Integer.parseInt(superTemporal[0]),fechaPedido,cantPaquetes,dayweek);                
-                //RutaEscogida resultadoRuta=evaluarRuta(rutaEvaluada,resultadoRutaInicial,maxTiempoVuelo,codCiudadF,Integer.parseInt(superTemporal[0]),fechaPedido,cantPaquetes,dayweek);
+                //RutaEscogida resultadoRuta=recursiveSearch(rutaActual,resultadoRutaInicial,maxTiempoVuelo,codCiudadF,Integer.parseInt(superTemporal[0]),fechaPedido,cantPaquetes,dayweek);                
+                RutaEscogida resultadoRuta=evaluarRuta(rutaEvaluada,resultadoRutaInicial,maxTiempoVuelo,codCiudadF,Integer.parseInt(superTemporal[0]),fechaPedido,cantPaquetes,dayweek);
                 
                 
                 if(resultadoRuta.getEstadoRuta()==this.estadoRutaFactible){
@@ -407,10 +425,14 @@ public class GestorCiudades {
                 }else{
                     if(resultadoRuta.getEstadoRuta()==this.estadoRutaXTiempo)
                         cantidadNFTiempo++;
-                    else if(resultadoRuta.getEstadoRuta()==this.estadoRutaXCapacidadAlmacen)
+                    else if(resultadoRuta.getEstadoRuta()==this.estadoRutaXCapacidadAlmacen){
                         cantidadNFCapacidadAlmacen++;
-                    else if(resultadoRuta.getEstadoRuta()==this.estadoRutaXCapacidadVuelo)
+                        listaRutasNFCapacidadAlmacen.add(rutaEvaluada);
+                    }else if(resultadoRuta.getEstadoRuta()==this.estadoRutaXCapacidadVuelo){
                         cantidadNFCapacidadVuelo++;
+                        listaRutasNFCapacidadVuelo.add(rutaEvaluada);
+                    }
+                        
                 }
                 cantPorcAnexosRevisados--;
                 cantAnexosRevisados++;
@@ -427,15 +449,19 @@ public class GestorCiudades {
         else{
             System.out.println(fechaPedido+" Numero de Pedido: "+numPedido+ " Mejor Ruta: "+mejorRuta.imprimirRecorrido()+" Mejor Tiempo: "+mejorRuta.getTiempoRuta());
             if(numPedido%5000==0)System.out.println("dfs.GestorCiudades.DFS()");
-            ciudadO.incrementarRutaEscogida(indiceRutaEscogida);
-            //ciudadO.incrementarRutaEscogidaXCiudad(codCiudadF, indiceRutaEscogida);
+            //ciudadO.incrementarRutaEscogida(indiceRutaEscogida);
+            ciudadO.incrementarRutaEscogidaXCiudad(codCiudadF, indiceRutaEscogida);
             
             actualizarCapacidadAlmacen_Rutas(mejorRuta, cantPaquetes,horaPedido,fechaPedido,codCiudadF,dayweek);
         }
     }
 
     private RutaEscogida evaluarRuta(ConjRutas rutaEvaluada,RutaEscogida resultadoRuta,int maxTiempoVuelo,String ciudadFinal,int horaPartida, String fechaPedido,int cantidadPaquetes, int dayweek){
-        
+        if(rutaEvaluada.vuelos==null){
+            resultadoRuta.setEstadoRuta(this.estadoRutaXTiempo);
+            return resultadoRuta;
+        }
+            
         for(Ruta rutaActual: rutaEvaluada.vuelos){
             if(dayweek>6)dayweek-=7;
             int tiempoTraslado=calcularTiempoTraslado(rutaActual);
@@ -607,8 +633,7 @@ public class GestorCiudades {
         }
     }
     
-    private int calcularTiempoTraslado (Ruta rutaActual){
-	int tiempoTraslado;       
+    private int calcularTiempoTraslado (Ruta rutaActual){   
 	Ciudad ciudadI=getCiudades().get(rutaActual.getCiudadOrigen());
 	Ciudad ciudadF=getCiudades().get(rutaActual.getCiudadFin());
 	String[] hhmmO=rutaActual.getHoraOrigen().trim().split(":");
@@ -779,7 +804,7 @@ public class GestorCiudades {
     private ArrayList<Integer> crearListaAEscogerXCiudad(Ciudad ciudadO,String codCiudadFin){        
         ArrayList<Integer> listaAEscoger = new ArrayList<Integer>();
         
-        ArrayList<Integer> cantVisitadasRutas = ciudadO.getCantVisitadasRutasAnexas();
+        ArrayList<Integer> cantVisitadasRutas = ciudadO.CantVisitadasrutasXDestino.get(codCiudadFin);
         
         int indCantVisitadasRutas=0;
         for(Integer cantVisita : cantVisitadasRutas){
@@ -846,7 +871,7 @@ public class GestorCiudades {
             Ciudad ciudadActual=(Ciudad)me.getValue();
              
             //BufferedReader archivoCiudad = new BufferedReader(new FileReader("Extras/_archivos_1dia/1arch_"+ciudadActual.getCodigo()+".txt"));
-            BufferedReader archivoCiudad = new BufferedReader(new FileReader("DataGenerada/"+ciudadActual.getCodigo()+".txt"));
+            BufferedReader archivoCiudad = new BufferedReader(new FileReader("PedidosActuales/arch_"+ciudadActual.getCodigo()+".txt"));
             String linea;
             String[] temporalArchivo=new String[100000];
             int numeroPedidos=0;

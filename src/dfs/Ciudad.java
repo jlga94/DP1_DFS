@@ -207,8 +207,8 @@ public class Ciudad {
     public void instanciarCantVisitadasrutasXDestino(String codCiudadF){
         ArrayList<ConjRutas> rutas=(ArrayList<ConjRutas>)this.rutasXDestino.get(codCiudadF);
         ArrayList<Integer> listaRutas= new ArrayList<Integer>();
-        
-        for(int i=0;i<rutas.size();i++){
+ 
+        for(int i=0;rutas!=null &&i<rutas.size();i++){
             listaRutas.add(1);//Se instancian con 1 para empezas con probabilidad 1
         }
         
