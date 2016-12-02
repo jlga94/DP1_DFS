@@ -5,16 +5,14 @@
  */
 package dfs;
 
-import java.io.BufferedReader;
 import java.io.FileNotFoundException;
-import java.io.FileReader;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
-import javafx.util.Pair;
+
 
 /**
  *
@@ -29,16 +27,20 @@ public class Ciudad {
     private int huso_horario;
     private int cantPaquetes;
     public ArrayList<Ruta> rutasAnexas=new ArrayList<Ruta>();
-    public TreeMap proyeccionAlmacen = new TreeMap();
+    public TreeMap<Integer, TreeMap<Integer,Integer>> proyeccionAlmacen = new TreeMap<Integer, TreeMap<Integer,Integer>>();
     private ArrayList<Integer> cantVisitadasRutasAnexas=new ArrayList<Integer>();
-    public HashMap<String,ArrayList<ConjRutas>> rutas = new HashMap<>(); // llave es el codigo de la ciudad destino, valor es las rutas posibles
-
-    private BufferedReader brAeropuertos;
+    public HashMap<String,ArrayList<ConjRutas>> rutasXDestino = new HashMap<>(); // llave es el codigo de la ciudad destino, valor es las rutasXDestino posibles
+    public HashMap<String,ArrayList<Integer>> CantVisitadasrutasXDestino = new HashMap<>();
+    
+    
+    //private BufferedReader brAeropuertos;
     private String ultimaHora;
     private String ultimaFecha;
     private String ultimoDestino;
     private int linea=0;
     private String[] archivoPedidos;
+    
+    public TreeMap<Integer, TreeMap<Integer,ArrayList<Paquete>>> proyeccionPedidos = new TreeMap<Integer, TreeMap<Integer,ArrayList<Paquete>>>();
     
     public Ciudad(String id,String codigo,String nombre,String pais,String continente) throws FileNotFoundException{
         this.Id=Integer.parseInt(id);
@@ -48,14 +50,28 @@ public class Ciudad {
         this.Continente=continente;
         this.cantPaquetes=0;
         for(int i=0;i<7;i++){
-            proyeccionAlmacen.put(i, new TreeMap());
-            TreeMap temp=(TreeMap)proyeccionAlmacen.get(i);
+            
+            proyeccionAlmacen.put(i, new TreeMap<Integer,Integer>());
+            proyeccionPedidos.put(i, new TreeMap<Integer,ArrayList<Paquete>>());
+            
+            //Y SIGUE POR AQUI
+            
+            TreeMap<Integer,Integer> temp=(TreeMap<Integer,Integer>)proyeccionAlmacen.get(i);
+            TreeMap<Integer,ArrayList<Paquete>> temporal= (TreeMap<Integer, ArrayList<Paquete>>) proyeccionPedidos.get(i);
+            
             for(int j=0;j<24;++j){
                 temp.put(j*100, 0);
                 temp.put(j*100+1, 0);
+                
+                temporal.put(j, new ArrayList<Paquete>());
+                
             }
         }
-        brAeropuertos = new BufferedReader(new FileReader("Extras/_archivos_1dia/1arch_"+codigo+".txt"));
+        //brAeropuertos = new BufferedReader(new FileReader("Extras/_archivos_1dia/1arch_"+codigo+".txt"));
+    }
+
+    Ciudad() {
+
     }
     
     /**
@@ -67,7 +83,7 @@ public class Ciudad {
     
     public void print(){
         System.out.println("========"+codigo+"========");
-        Set set = rutas.entrySet();
+        Set set = rutasXDestino.entrySet();
         Iterator i = set.iterator();
         while(i.hasNext()) {
             Map.Entry me = (Map.Entry)i.next();
@@ -195,14 +211,34 @@ public class Ciudad {
     public void instanciarCantidadIdasRutasAnexas(){
         for(int i=0;i<this.rutasAnexas.size();i++){
             this.cantVisitadasRutasAnexas.add(1);//Se instancian con 1 para empezas con probabilidad 1
+        }        
+    }
+    
+    public void instanciarCantVisitadasrutasXDestino(String codCiudadF){
+        ArrayList<ConjRutas> rutas=(ArrayList<ConjRutas>)this.rutasXDestino.get(codCiudadF);
+        ArrayList<Integer> listaRutas= new ArrayList<Integer>();
+ 
+        for(int i=0;rutas!=null &&i<rutas.size();i++){
+            listaRutas.add(1);//Se instancian con 1 para empezas con probabilidad 1
         }
         
+        this.CantVisitadasrutasXDestino.put(codCiudadF, listaRutas);
+        
     }
+    
+    
 
     public void incrementarRutaEscogida(int indiceRuta){
         int cant=cantVisitadasRutasAnexas.get(indiceRuta);
         cantVisitadasRutasAnexas.set(indiceRuta, cant+1);
     }
+    
+    public void incrementarRutaEscogidaXCiudad(String codCiudadF,int indiceRuta){
+        ArrayList<Integer> listaRutas=CantVisitadasrutasXDestino.get(codCiudadF);    
+        int cant=listaRutas.get(indiceRuta);
+        listaRutas.set(indiceRuta, cant+1);
+    }
+    
     
     public void disminuirOtrasRutas(int indiceRuta){
         for(int i=0;i<this.rutasAnexas.size();i++){
@@ -306,21 +342,67 @@ public class Ciudad {
             this.setUltimoDestino(DestinoPaquete);                     
         }
         else this.setUltimaHora(null);
-        
+        /*BufferedReader archivoCiudad= new BufferedReader(new FileReader("Extras/_archivos_1dia/1arch_"+codigo+".txt"));
+        String linea;
+        try{
+            for(int i=0;i<this.linea;++i) linea=archivoCiudad.readLine();
+        }catch (IOException e)
+        {
+            System.err.println(e.toString());
+        }
+        finally
+        {
+            try
+            {
+                archivoCiudad.close();
+            }
+            catch (IOException ex)
+            {
+                System.err.println(ex.toString());
+            }
+        }
+        try{
+            if((linea=archivoCiudad.readLine()) != null){
+                String codigoPaquete=linea.substring(0, 9);
+                String fechaLlegadaPaquete=linea.substring(15,17)+"/"+linea.substring(13,15)+"/"+linea.substring(9,13);
+                String horaLlegadaPaquete=linea.substring(17,22);
+                String DestinoPaquete=linea.substring(22,26);
+                this.setLinea(this.linea+1);
+                this.setUltimaFecha(fechaLlegadaPaquete);
+                this.setUltimaHora(horaLlegadaPaquete);
+                this.setUltimoDestino(DestinoPaquete);                     
+            }
+            else this.setUltimaHora(null);
+            archivoCiudad.close();      
+        }catch (IOException e)
+        {
+            System.err.println(e.toString());
+        }
+        finally
+        {
+            try
+            {
+                archivoCiudad.close();
+            }
+            catch (IOException ex)
+            {
+                System.err.println(ex.toString());
+            }
+        } */
     }
 
     /**
      * @return the brAeropuertos
      */
-    public BufferedReader getBrAeropuertos() {
-        return brAeropuertos;
-    }
+    //public BufferedReader getBrAeropuertos() {
+    //    return brAeropuertos;
+    //}
 
     /**
      * @param brAeropuertos the brAeropuertos to set
      */
-    public void setBrAeropuertos(BufferedReader brAeropuertos) {
-        this.brAeropuertos = brAeropuertos;
-    }
+    //public void setBrAeropuertos(BufferedReader brAeropuertos) {
+    //    this.brAeropuertos = brAeropuertos;
+    //}
     
 }

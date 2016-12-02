@@ -5,9 +5,6 @@
  */
 package dfs;
 
-import java.text.DateFormat;
-import javax.print.attribute.standard.DateTimeAtCompleted;
-
 /**
  *
  * @author JoseLuis
